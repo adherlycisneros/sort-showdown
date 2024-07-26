@@ -3,21 +3,147 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: Arial, sans-serif; }
+  font-family: Arial, sans-serif;
+  background-color: #32CD32;
+  margin: 0;
+  padding: 20px;
+  position: relative; /* Added to position the buttons absolutely within the body */
+}
 
-#dice-container {
+h1, h2 {
+  color: #fff;
+  text-align: center;
+}
+
+p {
+  color: #fff;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#container {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 800px;
+  margin-top: 20px;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px;
+}
+
+.dice-container {
   display: flex;
   flex-wrap: wrap;
-  margin: 20px; }
+  justify-content: center;
+  gap: 5px;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  min-height: 150px;
+  width: 100%;
+}
 
 .die {
-  width: 50px;
-  height: 50px;
+  position: relative;
+  width: 80px;
+  height: 80px;
   margin: 10px;
-  background-color: lightblue;
+  background-size: cover;
   text-align: center;
-  line-height: 50px;
+  line-height: 80px;
   font-size: 24px;
-  border: 1px solid #000;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.die.initial-load {
+  animation: fall 1s ease-in-out forwards;
+}
+
+.sort-button, #start-button {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
   border-radius: 5px;
-  cursor: pointer; }
+  cursor: pointer;
+  margin: 20px 0;
+  transition: background-color 0.3s;
+}
+
+.instructions-button, .toggle-dice-button {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.sort-button:hover, #start-button:hover, .instructions-button:hover, .toggle-dice-button:hover {
+  background-color: #333;
+}
+
+.instructions-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.toggle-dice-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+@keyframes fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-200px) rotate(0deg) scale(0.5);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(50px) rotate(180deg) scale(0.75);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(360deg) scale(1);
+  }
+}
+/* Media Queries for Mobile and Smaller Screens */
+@media (max-width: 768px) {
+  #container {
+    flex-direction: column;
+    align-items: center;
+  }
+  .side {
+    width: 100%;
+    margin: 10px 0;
+  }
+  .instructions-button, .toggle-dice-button {
+    position: relative;
+    top: auto;
+    right: auto;
+    left: auto;
+    margin: 10px;
+    width: auto;
+  }
+  .toggle-dice-button {
+    order: 1; /* Ensure toggle button is above the game content */
+  }
+  .instructions-button {
+    order: 2; /* Ensure instructions button is above the game content */
+  }
+}
+
+/*# sourceMappingURL=styles.css.map */

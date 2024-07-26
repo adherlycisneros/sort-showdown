@@ -4,12 +4,13 @@
   "description": "Sorting algorithm using dice where the user competes with the computer.",
   "main": "src/scripts/dice.js",
   "scripts": {
-    "compile:sass": "node-sass src/styles/styles.scss src/styles/styles.css"
+    "compile:sass": "sass src/styles/styles.scss src/styles/styles.css",
+    "watch:sass": "sass --watch src/styles/styles.scss:src/styles/styles.css"
   },
   "author": "Adherly CIsneros",
   "license": "MIT",
   "keywords": [],
   "devDependencies": {
-    "node-sass": "^9.0.0"
+    "sass": "^1.77.8"
   }
 }

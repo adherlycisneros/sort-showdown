@@ -5,11 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sort Showdown</title>
     <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
 </head>
 <body>
-    <h1>Sort Showdown: Can you beat the AI?</h1>
-    <div id="dice-container"></div>
-    <button id="sort-button">Sort Dice</button>
+    <div id="initial-content">
+        <h1>Sort Showdown</h1>
+        <p>Instructions: Click the "Start" button to begin the game and sort the dice.</p>
+        <button id="start-button">Start</button>
+    </div>
+    <div id="game-content" style="display:none;">
+        <h1>Sort Showdown: Can you beat the AI?</h1>
+        <button id="instructions-button" class="instructions-button">Instructions</button>
+        <button id="toggle-dice-button" class="toggle-dice-button">6 Dice Version</button>
+
+        <div id="container">
+            <div class="side" id="side1">
+                <h2>Sort these dice</h2>
+                <div id="dice-container1" class="dice-container"></div>
+                <button id="submit-button" class="sort-button">SUBMIT</button>
+            </div>
+            <div class="side" id="side2">
+                <h2>Computer sorting...</h2>
+                <div id="dice-container2" class="dice-container"></div>
+            </div>
+        </div>
+    </div>
     <script src="scripts/dice.js"></script>
 </body>
 </html>
