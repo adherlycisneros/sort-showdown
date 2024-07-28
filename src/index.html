@@ -11,13 +11,17 @@
     <div id="initial-content">
         <h1>Sort Showdown</h1>
         <p>Instructions: Click the "Start" button to begin the game and sort the dice.</p>
+        <div id="difficulty-buttons">
+            <button class="difficulty-button" data-speed="easy">Easy</button>
+            <button class="difficulty-button" data-speed="medium">Medium</button>
+            <button class="difficulty-button" data-speed="hard">Hard</button>
+        </div>
         <button id="start-button">Start</button>
     </div>
     <div id="game-content" style="display:none;">
         <h1>Sort Showdown: Can you beat the AI?</h1>
         <button id="instructions-button" class="instructions-button">Instructions</button>
         <button id="toggle-dice-button" class="toggle-dice-button">6 Dice Version</button>
-
         <div id="container">
             <div class="side" id="side1">
                 <h2>Sort these dice</h2>

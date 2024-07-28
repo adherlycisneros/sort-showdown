@@ -41,10 +41,16 @@ function generateDice(containerId, numbers) {
     }
 }
 
-// Simulate drag-and-drop animation for the computer without rotation
-function simulateDragAndDrop(containerId, numbers) {
+// Simulate drag-and-drop animation for the computer with different speeds
+function simulateDragAndDrop(containerId, numbers, speed) {
     const diceContainer = document.getElementById(containerId);
     const sortedNumbers = quickSort([...numbers]);
+    
+    const speedMap = {
+        easy: 1000,
+        medium: 500,
+        hard: 250
+    };
 
     let index = 0;
     const interval = setInterval(() => {
@@ -60,7 +66,7 @@ function simulateDragAndDrop(containerId, numbers) {
         diceContainer.appendChild(die);
 
         index++;
-    }, 500); // Adjust the timing as needed
+    }, speedMap[speed]); // Adjust the timing based on difficulty level
 }
 
 // Check if the dice are sorted correctly
@@ -79,7 +85,10 @@ function shuffle(array) {
     return array;
 }
 
-// Switch from initial content to game content with 9 dice
+// Store the selected difficulty
+let selectedSpeed = 'medium'; // Default speed
+
+// Function to start the game
 function startGame() {
     document.getElementById('initial-content').style.display = 'none';
     document.getElementById('game-content').style.display = 'block';
@@ -90,9 +99,9 @@ function startGame() {
     generateDice('dice-container1', shuffledNumbers); // Initialize unsorted dice for the user
     generateDice('dice-container2', shuffledNumbers); // Initialize unsorted dice for the computer
 
-    // Simulate drag-and-drop sorting for the computer
+    // Simulate drag-and-drop sorting for the computer with selected speed
     setTimeout(() => {
-        simulateDragAndDrop('dice-container2', shuffledNumbers);
+        simulateDragAndDrop('dice-container2', shuffledNumbers, selectedSpeed);
     }, shuffledNumbers.length * 100 + 500); // Adjust timing to match the end of the animation
 
     // Add event listener for the submit button
@@ -105,11 +114,12 @@ function startGame() {
     });
 
     // Update toggle button text and event listener
-    const toggleButton = document.getElementById('six-dice-button');
-    toggleButton.textContent = diceCount === '9' ? '6 Dice Version' : '9 Dice Version';
+    const toggleButton = document.getElementById('toggle-dice-button');
+    toggleButton.textContent = '6 Dice Version';
     toggleButton.onclick = () => {
-        console.log(`Toggling to ${diceCount === '9' ? '6' : '9'} dice version`); // Debugging
-        loadGameContent(diceCount === '9' ? '6' : '9');
+        const isNineDiceVersion = toggleButton.textContent === '9 Dice Version';
+        toggleButton.textContent = isNineDiceVersion ? '6 Dice Version' : '9 Dice Version';
+        loadGameContent(isNineDiceVersion ? '9' : '6');
     };
 }
 
@@ -125,16 +135,14 @@ document.getElementById('start-button').addEventListener('click', startGame);
 // Add event listener to the instructions button
 document.getElementById('instructions-button').addEventListener('click', showInstructions);
 
-// Add event listener to the toggle dice version button
-document.getElementById('toggle-dice-button').addEventListener('click', () => {
-    const isNineDiceVersion = document.getElementById('toggle-dice-button').textContent === '9 Dice Version';
-    document.getElementById('toggle-dice-button').textContent = isNineDiceVersion ? '6 Dice Version' : '9 Dice Version';
-    loadGameContent(isNineDiceVersion ? '9' : '6');
+// Add event listener to the difficulty buttons
+document.querySelectorAll('.difficulty-button').forEach(button => {
+    button.addEventListener('click', () => {
+        selectedSpeed = button.dataset.speed;
+        document.querySelectorAll('.difficulty-button').forEach(btn => btn.classList.remove('selected'));
+        button.classList.add('selected');
+    });
 });
-
-
-
-
 
 // Animate the initial loading of the dice
 function animateLoading(containerId) {
@@ -164,9 +172,9 @@ function loadGameContent(diceCount) {
     animateLoading('dice-container1');
     animateLoading('dice-container2');
 
-    // Simulate drag-and-drop sorting for the computer
+    // Simulate drag-and-drop sorting for the computer with selected speed
     setTimeout(() => {
-        simulateDragAndDrop('dice-container2', shuffledNumbers);
+        simulateDragAndDrop('dice-container2', shuffledNumbers, selectedSpeed);
     }, shuffledNumbers.length * 100 + 500); // Adjust timing to match the end of the animation
 
     // Add event listener for the submit button

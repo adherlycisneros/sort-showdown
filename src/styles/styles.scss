@@ -8,6 +8,7 @@ body {
     margin: 0;
     padding: 20px;
     position: relative; /* Added to position the buttons absolutely within the body */
+    min-height: 100vh; /* Ensure body takes full height */
 }
 
 h1, h2 {
@@ -19,6 +20,14 @@ p {
     color: #fff;
     text-align: center;
     margin-bottom: 20px;
+}
+
+#initial-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 }
 
 #container {
@@ -67,7 +76,7 @@ p {
     animation: fall 1s ease-in-out forwards;
 }
 
-.sort-button, #start-button {
+.sort-button, #start-button, .difficulty-button {
     background-color: #000;
     color: #fff;
     border: none;
@@ -78,6 +87,7 @@ p {
     margin: 20px 0;
     transition: background-color 0.3s;
 }
+
 .instructions-button, .toggle-dice-button {
     background-color: #000;
     color: #fff;
@@ -89,7 +99,7 @@ p {
     transition: background-color 0.3s;
 }
 
-.sort-button:hover, #start-button:hover, .instructions-button:hover, .toggle-dice-button:hover {
+.sort-button:hover, #start-button:hover, .instructions-button:hover, .toggle-dice-button:hover, .difficulty-button:hover {
     background-color: #333;
 }
 
@@ -103,6 +113,17 @@ p {
     position: absolute;
     top: 20px;
     left: 20px;
+}
+
+#difficulty-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.difficulty-button.selected {
+    background-color: #555; /* Different background color for selected button */
 }
 
 @keyframes fall {
