@@ -1,6 +1,6 @@
 /* styles.scss */
-@import url("https://fonts.googleapis.com/css2?family=Play:wght@700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Play:wght@700&display=swap");
 body {
   display: flex;
   flex-direction: column;
@@ -94,18 +94,6 @@ p {
   animation: fall 1s ease-in-out forwards;
 }
 
-.sort-button {
-  background-color: #000;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin: 20px 0;
-  transition: background-color 0.3s;
-}
-
 #start-button {
   font-family: "Press Start 2P", cursive;
   background-color: #000;
@@ -116,6 +104,18 @@ p {
   border-radius: 5px;
   cursor: pointer;
   margin-top: 40px;
+  transition: background-color 0.3s;
+}
+
+#submit-button {
+  font-family: "Press Start 2P", cursive;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 10px 25px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
   transition: background-color 0.3s;
 }
 
@@ -142,7 +142,7 @@ p {
   transition: background-color 0.3s;
 }
 
-.sort-button:hover, #start-button:hover, .instructions-button:hover, .toggle-dice-button:hover {
+.sort-button:hover, #start-button:hover, #submit-button:hover, .instructions-button:hover, .toggle-dice-button:hover {
   background-color: #333;
 }
 

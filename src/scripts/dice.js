@@ -45,23 +45,30 @@ function generateDice(containerId, numbers) {
 function simulateDragAndDrop(containerId, numbers, speed) {
     const diceContainer = document.getElementById(containerId);
     const sortedNumbers = quickSort([...numbers]);
-    
+
     const speedMap = {
-        easy: 1000,
-        medium: 500,
-        hard: 250
+        easy: 1500,
+        medium: 800,
+        hard: 400
     };
 
     let index = 0;
     const interval = setInterval(() => {
         if (index >= sortedNumbers.length) {
             clearInterval(interval);
+            computerFinishedSorting = true;
+
+            // Show the "Ohh Too Slow!" message if the user hasn't submitted yet and the game isn't over
+            if (!userSubmitted && !gameOver) {
+                alert("Ohh Too Slow! Try Again");
+                gameOver = true; // Mark the game as over
+            }
             return;
         }
 
         const number = sortedNumbers[index];
         const die = document.querySelector(`#${containerId} .die[data-number='${number}']`);
-        
+
         // Move die to the new position
         diceContainer.appendChild(die);
 
@@ -93,14 +100,21 @@ const nameMap = {
     hard: 'Brandon'
 };
 
-// Function to start the game
-function startGame() {
-    document.getElementById('initial-content').style.display = 'none';
-    document.getElementById('game-content').style.display = 'grid';
+let computerFinishedSorting = false;
+let userSubmitted = false;
+let gameOver = false;
+let currentNumbers = []; // To keep track of current numbers based on dice count
 
-    // Initialize dice for user
-    const numbers = [1, 5, 9, 3, 7, 2, 8, 6, 4];
-    const shuffledNumbers = shuffle([...numbers]); // Create a shuffled copy of the numbers
+// Function to initialize the game with specified dice count
+function initializeGame(diceCount) {
+    // Reset flags
+    computerFinishedSorting = false;
+    userSubmitted = false;
+    gameOver = false;
+
+    currentNumbers = diceCount === 9 ? [1, 5, 9, 3, 7, 2, 8, 6, 4] : [1, 5, 3, 7, 2, 6];
+    const shuffledNumbers = shuffle([...currentNumbers]); // Create a shuffled copy of the numbers
+
     generateDice('dice-container1', shuffledNumbers); // Initialize unsorted dice for the user
     generateDice('dice-container2', shuffledNumbers); // Initialize unsorted dice for the computer
 
@@ -111,24 +125,14 @@ function startGame() {
     setTimeout(() => {
         simulateDragAndDrop('dice-container2', shuffledNumbers, selectedSpeed);
     }, shuffledNumbers.length * 100 + 500); // Adjust timing to match the end of the animation
+}
 
-    // Add event listener for the submit button
-    document.getElementById('submit-button').addEventListener('click', () => {
-        if (checkSorted('dice-container1', quickSort([...numbers]))) {
-            alert('You sorted the dice correctly!');
-        } else {
-            alert('Try again!');
-        }
-    });
+// Function to start the game
+function startGame() {
+    document.getElementById('initial-content').style.display = 'none';
+    document.getElementById('game-content').style.display = 'grid';
 
-    // Update toggle button text and event listener
-    const toggleButton = document.getElementById('toggle-dice-button');
-    toggleButton.textContent = '6 Dice Version';
-    toggleButton.onclick = () => {
-        const isNineDiceVersion = toggleButton.textContent === '9 Dice Version';
-        toggleButton.textContent = isNineDiceVersion ? '6 Dice Version' : '9 Dice Version';
-        loadGameContent(isNineDiceVersion ? '9' : '6');
-    };
+    initializeGame(9); // Start with 9 dice by default
 }
 
 // Switch from game content to initial content
@@ -152,48 +156,27 @@ document.querySelectorAll('.difficulty-button').forEach(button => {
     });
 });
 
-// Animate the initial loading of the dice
-function animateLoading(containerId) {
-    const diceContainer = document.getElementById(containerId);
-    const diceElements = Array.from(diceContainer.children);
-    diceElements.forEach((die, index) => {
-        die.style.opacity = 0;
-        die.style.transform = 'translateY(-200px) rotate(0deg) scale(0.5)';
-        setTimeout(() => {
-            die.style.transition = 'transform 0.5s, opacity 0.5s';
-            die.style.transform = 'translateY(0) rotate(360deg) scale(1)';
-            die.style.opacity = 1;
-        }, index * 100);
-    });
-}
+// Add event listener for the submit button (attach only once)
+document.getElementById('submit-button').addEventListener('click', () => {
+    if (gameOver) return; // Prevent further actions if the game is over
 
-// Load game content with specified number of dice
-function loadGameContent(diceCount) {
-    document.getElementById('initial-content').style.display = 'none';
-    document.getElementById('game-content').style.display = 'grid';
-
-    const numbers = diceCount === '9' ? [1, 5, 9, 3, 7, 2, 8, 6, 4] : [1, 5, 3, 7, 2, 6];
-    const shuffledNumbers = shuffle([...numbers]); // Create a shuffled copy of the numbers
-
-    generateDice('dice-container1', shuffledNumbers); // Initialize unsorted dice for the user
-    generateDice('dice-container2', shuffledNumbers); // Initialize unsorted dice for the computer
-    animateLoading('dice-container1');
-    animateLoading('dice-container2');
-
-    // Set the computer sorting text based on the selected difficulty
-    document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} sorting...`;
-
-    // Simulate drag-and-drop sorting for the computer with selected speed
-    setTimeout(() => {
-        simulateDragAndDrop('dice-container2', shuffledNumbers, selectedSpeed);
-    }, shuffledNumbers.length * 100 + 500); // Adjust timing to match the end of the animation
-
-    // Add event listener for the submit button
-    document.getElementById('submit-button').addEventListener('click', () => {
-        if (checkSorted('dice-container1', quickSort([...numbers]))) {
-            alert('You sorted the dice correctly!');
+    userSubmitted = true; // Mark that the user has submitted
+    if (checkSorted('dice-container1', quickSort([...currentNumbers]))) {
+        if (!computerFinishedSorting) {
+            alert('You win!');
+            gameOver = true; // Mark the game as over
         } else {
-            alert('Try again!');
+            alert('Ohh Too Slow! Try Again');
         }
-    });
-}
+    } else {
+        alert('Try again!');
+        userSubmitted = false; // Reset to allow "Ohh Too Slow!" to trigger later
+    }
+});
+
+// Add event listener for the toggle dice version button
+document.getElementById('toggle-dice-button').addEventListener('click', function () {
+    const isNineDiceVersion = this.textContent.includes('9');
+    this.textContent = isNineDiceVersion ? '6 Dice Version' : '9 Dice Version';
+    initializeGame(isNineDiceVersion ? 9 : 6);
+});
