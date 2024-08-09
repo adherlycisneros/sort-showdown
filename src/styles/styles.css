@@ -1,4 +1,6 @@
 /* styles.scss */
+@import url("https://fonts.googleapis.com/css2?family=Play:wght@700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 body {
   display: flex;
   flex-direction: column;
@@ -11,7 +13,7 @@ body {
   min-height: 100vh; /* Ensure body takes full height */
 }
 
-h1, h2 {
+h2 {
   color: #fff;
   text-align: center;
 }
@@ -20,6 +22,22 @@ p {
   color: #fff;
   text-align: center;
   margin-bottom: 20px;
+}
+
+.title-container {
+  justify-self: center;
+}
+
+.title-text {
+  text-align: center;
+  color: black; /* Red text color */
+  font-size: 50px;
+  font-family: "Play", cursive;
+  display: inline-block;
+}
+
+.emoji {
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif; /* Use system emoji fonts for emojis */
 }
 
 #initial-content {
@@ -76,7 +94,7 @@ p {
   animation: fall 1s ease-in-out forwards;
 }
 
-.sort-button, #start-button, .difficulty-button {
+.sort-button {
   background-color: #000;
   color: #fff;
   border: none;
@@ -88,18 +106,43 @@ p {
   transition: background-color 0.3s;
 }
 
+#start-button {
+  font-family: "Press Start 2P", cursive;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 15px 30px;
+  font-size: 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 40px;
+  transition: background-color 0.3s;
+}
+
+.difficulty-button img {
+  color: #fff;
+  border: none;
+  padding: 10px 20px 0px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 20px 0;
+  transition: background-color 0.3s;
+}
+
 .instructions-button, .toggle-dice-button {
+  font-family: "Press Start 2P", cursive;
   background-color: #000;
   color: #fff;
   border: none;
   padding: 10px 20px;
-  font-size: 16px;
+  font-size: 12px;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
-.sort-button:hover, #start-button:hover, .instructions-button:hover, .toggle-dice-button:hover, .difficulty-button:hover {
+.sort-button:hover, #start-button:hover, .instructions-button:hover, .toggle-dice-button:hover {
   background-color: #333;
 }
 
@@ -118,12 +161,31 @@ p {
 #difficulty-buttons {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 100px;
   margin-top: 20px;
 }
 
+.difficulty-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.difficulty-button img {
+  width: 150px; /* Adjust size as needed */
+  height: 150px; /* Adjust size as needed */
+}
+
+.difficulty-button p {
+  margin: 5px 0 0 0;
+  color: #fff;
+}
+
 .difficulty-button.selected {
-  background-color: #555; /* Different background color for selected button */
+  border: 2px solid #fff; /* Indicate selection */
+  border-radius: 10px;
+  background-color: rgba(51, 51, 51, 0.2666666667);
 }
 
 @keyframes fall {
@@ -165,5 +227,6 @@ p {
     order: 2; /* Ensure instructions button is above the game content */
   }
 }
+/* FONT IMPORT */
 
 /*# sourceMappingURL=styles.css.map */

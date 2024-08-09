@@ -9,17 +9,32 @@
 </head>
 <body>
     <div id="initial-content">
-        <h1>Sort Showdown</h1>
-        <p>Instructions: Click the "Start" button to begin the game and sort the dice.</p>
+        <div class="title-container">
+            <h1 class="title-text"><span class="emoji">🎲</span> SORT SHOWDOWN <span class="emoji">🎲</span></h1>
+        </div>
         <div id="difficulty-buttons">
-            <button class="difficulty-button" data-speed="easy">Easy</button>
-            <button class="difficulty-button" data-speed="medium">Medium</button>
-            <button class="difficulty-button" data-speed="hard">Hard</button>
+            <div class="difficulty-button" data-speed="easy">
+                <img src="assets/images/difficulty_easy.png" alt="Easy Difficulty">
+                <p>EASY</p>
+                <p>Play Against Blake</p>
+            </div>
+            <div class="difficulty-button" data-speed="medium">
+                <img src="assets/images/difficulty_medium.png" alt="Medium Difficulty">
+                <p>MEDIUM</p>
+                <p>Play Against Star</p>
+            </div>
+            <div class="difficulty-button" data-speed="hard">
+                <img src="assets/images/difficulty_hard.png" alt="Hard Difficulty">
+                <p>HARD</p>
+                <p>Play Against Brandon</p>
+            </div>
         </div>
         <button id="start-button">Start</button>
     </div>
-    <div id="game-content" style="display:none;">
-        <h1>Sort Showdown: Can you beat the AI?</h1>
+    <div id="game-content" style="display: none;">
+        <div class="title-container">
+            <h1 class="title-text"><span class="emoji">🎲</span> SORT SHOWDOWN <span class="emoji">🎲</span></h1>
+        </div>
         <button id="instructions-button" class="instructions-button">Instructions</button>
         <button id="toggle-dice-button" class="toggle-dice-button">6 Dice Version</button>
         <div id="container">
@@ -29,7 +44,7 @@
                 <button id="submit-button" class="sort-button">SUBMIT</button>
             </div>
             <div class="side" id="side2">
-                <h2>Computer sorting...</h2>
+                <h2 id="computer-sorting-text">Computer sorting...</h2>
                 <div id="dice-container2" class="dice-container"></div>
             </div>
         </div>

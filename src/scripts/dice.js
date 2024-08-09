@@ -85,19 +85,27 @@ function shuffle(array) {
     return array;
 }
 
-// Store the selected difficulty
+// Store the selected difficulty and name map
 let selectedSpeed = 'medium'; // Default speed
+const nameMap = {
+    easy: 'Blake',
+    medium: 'Star',
+    hard: 'Brandon'
+};
 
 // Function to start the game
 function startGame() {
     document.getElementById('initial-content').style.display = 'none';
-    document.getElementById('game-content').style.display = 'block';
+    document.getElementById('game-content').style.display = 'grid';
 
     // Initialize dice for user
     const numbers = [1, 5, 9, 3, 7, 2, 8, 6, 4];
     const shuffledNumbers = shuffle([...numbers]); // Create a shuffled copy of the numbers
     generateDice('dice-container1', shuffledNumbers); // Initialize unsorted dice for the user
     generateDice('dice-container2', shuffledNumbers); // Initialize unsorted dice for the computer
+
+    // Set the computer sorting text based on the selected difficulty
+    document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} sorting...`;
 
     // Simulate drag-and-drop sorting for the computer with selected speed
     setTimeout(() => {
@@ -125,7 +133,7 @@ function startGame() {
 
 // Switch from game content to initial content
 function showInstructions() {
-    document.getElementById('initial-content').style.display = 'block';
+    document.getElementById('initial-content').style.display = 'flex';
     document.getElementById('game-content').style.display = 'none';
 }
 
@@ -162,7 +170,7 @@ function animateLoading(containerId) {
 // Load game content with specified number of dice
 function loadGameContent(diceCount) {
     document.getElementById('initial-content').style.display = 'none';
-    document.getElementById('game-content').style.display = 'block';
+    document.getElementById('game-content').style.display = 'grid';
 
     const numbers = diceCount === '9' ? [1, 5, 9, 3, 7, 2, 8, 6, 4] : [1, 5, 3, 7, 2, 6];
     const shuffledNumbers = shuffle([...numbers]); // Create a shuffled copy of the numbers
@@ -171,6 +179,9 @@ function loadGameContent(diceCount) {
     generateDice('dice-container2', shuffledNumbers); // Initialize unsorted dice for the computer
     animateLoading('dice-container1');
     animateLoading('dice-container2');
+
+    // Set the computer sorting text based on the selected difficulty
+    document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} sorting...`;
 
     // Simulate drag-and-drop sorting for the computer with selected speed
     setTimeout(() => {
