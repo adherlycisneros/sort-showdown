@@ -4,19 +4,64 @@ body {
     flex-direction: column;
     align-items: center;
     font-family: Arial, sans-serif;
-    background-color: #32CD32;
+    //background-color: #32CD32;
     margin: 0;
-    padding: 20px;
+    //padding: 20px;
     position: relative; /* Added to position the buttons absolutely within the body */
     min-height: 100vh; /* Ensure body takes full height */
 }
 
-h2 {
-    color: #fff;
-    text-align: center;
+.video-background {
+    position: relative;
+    width: 100%;
+    height: 100vh; /* Fullscreen */
+    overflow: hidden;
+
+
+    video {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        min-width: 100%;
+        min-height: 100%;
+        width: auto;
+        height: auto;
+        z-index: -1;
+        transform: translate(-50%, -50%);
+        background-size: cover;
+    }
+
+    &.hidden {
+        display: none; /* Hide video background during the game */
+    }
 }
 
-p {
+
+
+.content {
+    position: relative;
+    z-index: 1; /* Ensure content is above the video */
+    display: flex;
+    justify-content: center;
+}
+
+#game-content {
+    display: none;
+    background-image: url('../assets/images/retro-background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 100%;
+    height: 100vh;
+    flex-direction: column;
+    align-items: center;
+   
+    &.visible {
+        display: block;
+    }
+}
+
+h2, p {
     color: #fff;
     text-align: center;
     margin-bottom: 20px;
@@ -24,21 +69,22 @@ p {
 
 .title-container {
     justify-self: center;
+
+    .title-text {
+        text-align: center;
+        color: black; /* Red text color */
+        font-size: 50px;
+        font-family: 'Play', cursive;
+        //text-shadow: 2px 2px #000; /* Create a shadow for the 3D effect */
+        
+        
+        .emoji {
+            font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif; /* Use system emoji fonts for emojis */
+        }
+    }
 }
 
-.title-text {
-    text-align: center;
-    color: black; /* Red text color */
-    font-size: 50px;
-    
-    font-family: 'Play', cursive;
-    //text-shadow: 2px 2px #000; /* Create a shadow for the 3D effect */
-    display: inline-block;
-}
 
-.emoji {
-    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif; /* Use system emoji fonts for emojis */
-}
 
 #initial-content {
     display: flex;
@@ -46,6 +92,9 @@ p {
     align-items: center;
     justify-content: center;
     height: 100%;
+    &.hidden {
+        display: none;
+    }
 }
 
 #container {
@@ -54,70 +103,88 @@ p {
     width: 100%;
     max-width: 800px;
     margin-top: 20px;
+
+    .side {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 10px;
+    }
+
+    .dice-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+        margin: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        min-height: 150px;
+        width: 100%;
+    }
+
+    .die {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        margin: 10px;
+        background-size: cover;
+        text-align: center;
+        line-height: 80px;
+        font-size: 24px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+
+        &.initial-load {
+            animation: fall 1s ease-in-out forwards;
+        }
+    }
 }
 
-.side {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 10px;
-}
-
-.dice-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 5px;
-    margin: 10px;
-    padding: 10px;
-    border-radius: 10px;
-    min-height: 150px;
-    width: 100%;
-}
-
-.die {
-    position: relative;
-    width: 80px;
-    height: 80px;
-    margin: 10px;
-    background-size: cover;
-    text-align: center;
-    line-height: 80px;
-    font-size: 24px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+#start-button, #submit-button, .instructions-button, .toggle-dice-button {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
-}
+    transition: background-color 0.3s;
 
-.die.initial-load {
-    animation: fall 1s ease-in-out forwards;
+    &:hover {
+        background-color: #333;
+    }
 }
 
 #start-button {
-    font-family: 'Press Start 2P', cursive;
-    background-color: #000;
-    color: #fff;
-    border: none;
     padding: 15px 30px;
     font-size: 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 40px; 
-    transition: background-color 0.3s;
+    margin-top: 40px;
 }
 
 #submit-button {
-    font-family: 'Press Start 2P', cursive;
-    background-color: #000;
-    color: #fff;
-    border: none;
     padding: 10px 25px;
     font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer; 
-    transition: background-color 0.3s;
 }
+
+.instructions-button, .toggle-dice-button {
+    padding: 10px 20px;
+    font-size: 12px;
+
+    &.instructions-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+
+    &.toggle-dice-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+    }
+}
+
 
 .difficulty-button img {
     color: #fff;
@@ -130,62 +197,37 @@ p {
     transition: background-color 0.3s;
 }
 
-.instructions-button, .toggle-dice-button {
-    font-family: 'Press Start 2P', cursive;
-    background-color: #000;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    font-size: 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.sort-button:hover, #start-button:hover, #submit-button:hover, .instructions-button:hover, .toggle-dice-button:hover {
-    background-color: #333;
-}
-
-.instructions-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-}
-
-.toggle-dice-button {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-}
-
 #difficulty-buttons {
     display: flex;
     justify-content: center;
     gap: 100px;
     margin-top: 20px;
-}
 
-.difficulty-button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-}
+    .difficulty-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        border-radius: 10px;
+        background-color: transparent;
+        transition: background-color 0.3s;
 
-.difficulty-button img {
-    width: 150px; /* Adjust size as needed */
-    height: 150px; /* Adjust size as needed */
-}
+        img {
+            width: 150px; /* Adjust size as needed */
+            height: 150px; /* Adjust size as needed */
+            padding: 10px 20px 0px 20px;
+        }
 
-.difficulty-button p {
-    margin: 5px 0 0 0;
-    color: #fff;
-}
+        p {
+            margin: 5px 0 0 0;
+            color: #fff;
+        }
 
-.difficulty-button.selected {
-    border: 2px solid #fff; /* Indicate selection */
-    border-radius: 10px;
-    background-color: #33333344;
+        &.selected {
+            border: 2px solid #fff; /* Indicate selection */
+            background-color: #33333344;
+        }
+    }
 }
 
 @keyframes fall {
@@ -222,15 +264,7 @@ p {
         left: auto;
         margin: 10px;
         width: auto;
-    }
-
-    .toggle-dice-button {
-        order: 1; /* Ensure toggle button is above the game content */
-    }
-
-    .instructions-button {
-        order: 2; /* Ensure instructions button is above the game content */
-    }
+    } 
 }
 
 /* FONT IMPORT */

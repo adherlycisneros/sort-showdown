@@ -130,7 +130,7 @@ function initializeGame(diceCount) {
 // Function to start the game
 function startGame() {
     document.getElementById('initial-content').style.display = 'none';
-    document.getElementById('game-content').style.display = 'grid';
+    document.getElementById('game-content').style.display = 'flex';
 
     initializeGame(9); // Start with 9 dice by default
 }

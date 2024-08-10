@@ -8,29 +8,45 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
 </head>
 <body>
-    <div id="initial-content">
-        <div class="title-container">
-            <h1 class="title-text"><span class="emoji">🎲</span> SORT SHOWDOWN <span class="emoji">🎲</span></h1>
+    <div class="video-background">
+        <video autoplay muted loop id="video">
+            <source src="assets/videos/retro-background.mp4" type="video/mp4">
+        </video>
+    
+    <div class="content">
+        <div id="initial-content">
+            <div class="title-container">
+                <h1 class="title-text"><span class="emoji">🎲</span> SORT SHOWDOWN <span class="emoji">🎲</span></h1>
+            </div>
+            <div id="instructions-container">
+                <h2>Instructions</h2>
+                    <ol>
+                        <li>Choose an opponent to play against below.</li>
+                        <li>When you are finished selecting, press the Start button.</li>
+                        <li>Sort the dice in ascending numerical order before your oponent finishes.</li>
+                    </ol>
+            </div>
+            <div id="difficulty-buttons">
+                <div class="difficulty-button" data-speed="easy">
+                    <img src="assets/images/difficulty_easy.png" alt="Easy Difficulty">
+                    <p>EASY</p>
+                    <p>Play Against Blake</p>
+                </div>
+                <div class="difficulty-button" data-speed="medium">
+                    <img src="assets/images/difficulty_medium.png" alt="Medium Difficulty">
+                    <p>MEDIUM</p>
+                    <p>Play Against Star</p>
+                </div>
+                <div class="difficulty-button" data-speed="hard">
+                    <img src="assets/images/difficulty_hard.png" alt="Hard Difficulty">
+                    <p>HARD</p>
+                    <p>Play Against Brandon</p>
+                </div>
+            </div>
+            <button id="start-button">Start</button>
         </div>
-        <div id="difficulty-buttons">
-            <div class="difficulty-button" data-speed="easy">
-                <img src="assets/images/difficulty_easy.png" alt="Easy Difficulty">
-                <p>EASY</p>
-                <p>Play Against Blake</p>
-            </div>
-            <div class="difficulty-button" data-speed="medium">
-                <img src="assets/images/difficulty_medium.png" alt="Medium Difficulty">
-                <p>MEDIUM</p>
-                <p>Play Against Star</p>
-            </div>
-            <div class="difficulty-button" data-speed="hard">
-                <img src="assets/images/difficulty_hard.png" alt="Hard Difficulty">
-                <p>HARD</p>
-                <p>Play Against Brandon</p>
-            </div>
-        </div>
-        <button id="start-button">Start</button>
     </div>
+
     <div id="game-content" style="display: none;">
         <div class="title-container">
             <h1 class="title-text"><span class="emoji">🎲</span> SORT SHOWDOWN <span class="emoji">🎲</span></h1>
@@ -48,6 +64,7 @@
                 <div id="dice-container2" class="dice-container"></div>
             </div>
         </div>
+    </div>
     </div>
     <script src="scripts/dice.js"></script>
 </body>
