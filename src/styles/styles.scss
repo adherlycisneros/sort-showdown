@@ -1,12 +1,18 @@
 /* styles.scss */
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow-x: hidden; /* Prevent horizontal scrolling if not needed */
+    overflow-y: auto; /* Allow vertical scrolling */
+}
+
 body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-family: Arial, sans-serif;
-    //background-color: #32CD32;
     margin: 0;
-    //padding: 20px;
     position: relative; /* Added to position the buttons absolutely within the body */
     min-height: 100vh; /* Ensure body takes full height */
 }
@@ -31,9 +37,7 @@ body {
         background-size: cover;
     }
 
-    &.hidden {
-        display: none; /* Hide video background during the game */
-    }
+   
 }
 
 
@@ -51,49 +55,53 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    position: absolute;
     width: 100%;
-    height: 100vh;
+    min-height: 100vh;
+    display: flex;
     flex-direction: column;
     align-items: center;
-   
-    &.visible {
-        display: block;
-    }
 }
 
 h2, p {
     color: #fff;
     text-align: center;
     margin-bottom: 20px;
+    font-family: 'Play', cursive;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
+
 
 .title-container {
     justify-self: center;
+    
 
     .title-text {
         text-align: center;
-        color: black; /* Red text color */
-        font-size: 50px;
+        color: #00ffcc; 
+        font-size: 7vw;
         font-family: 'Play', cursive;
-        //text-shadow: 2px 2px #000; /* Create a shadow for the 3D effect */
-        
-        
+        text-shadow: 8px 8px 16px #000;
+        -webkit-text-stroke: 2px #000;
+        margin-bottom: 0;
+    
         .emoji {
             font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif; /* Use system emoji fonts for emojis */
         }
     }
 }
 
-
-
 #initial-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    height: 100%;
-    &.hidden {
-        display: none;
+    min-height: 100vh;
+
+    li {
+        font-family: 'Play', cursive;
+        font-size: 1.5vw;
+        margin-bottom: 10px;
+
     }
 }
 
@@ -109,6 +117,8 @@ h2, p {
         flex-direction: column;
         align-items: center;
         margin: 10px;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.200);
     }
 
     .dice-container {
@@ -134,43 +144,53 @@ h2, p {
         font-size: 24px;
         border: 1px solid #ccc;
         border-radius: 10px;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.6);
         cursor: pointer;
 
         &.initial-load {
             animation: fall 1s ease-in-out forwards;
         }
     }
+
+    #dice-container1 .die:hover {
+        transform: scale(1.05);
+    }
+
+    #dice-container2 .die:hover {
+        cursor: default;
+    }
 }
 
 #start-button, #submit-button, .instructions-button, .toggle-dice-button {
     font-family: 'Press Start 2P', cursive;
-    background-color: #000;
-    color: #fff;
-    border: none;
+    font-weight: bold;
+    background-color: #ff4500;
+    color: #000;
+    border: 2px solid #000;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.3s;
 
     &:hover {
         background-color: #333;
+        transform: scale(1.05);
     }
 }
 
 #start-button {
     padding: 15px 30px;
-    font-size: 20px;
+    font-size: 2vw;
     margin-top: 40px;
 }
 
 #submit-button {
-    padding: 10px 25px;
-    font-size: 16px;
+    padding: 15px 30px;
+    font-size: 2vw;
 }
 
 .instructions-button, .toggle-dice-button {
     padding: 10px 20px;
-    font-size: 12px;
+    font-size: 1vw;
 
     &.instructions-button {
         position: absolute;
@@ -186,21 +206,10 @@ h2, p {
 }
 
 
-.difficulty-button img {
-    color: #fff;
-    border: none;
-    padding: 10px 20px 0px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 20px 0;
-    transition: background-color 0.3s;
-}
-
 #difficulty-buttons {
     display: flex;
     justify-content: center;
-    gap: 100px;
+    gap: 5vw;
     margin-top: 20px;
 
     .difficulty-button {
@@ -209,23 +218,36 @@ h2, p {
         align-items: center;
         cursor: pointer;
         border-radius: 10px;
-        background-color: transparent;
-        transition: background-color 0.3s;
+        padding: 10px;
+        transition: background-color 0.3s, box-shadow 0.3s;
+
+        .difficulty-text {
+            background-color: rgba(255, 68, 0, 0.418);
+            border-radius: 5px;
+            border: #000 5px;
+            padding: 5px 15px;
+        }
 
         img {
-            width: 150px; /* Adjust size as needed */
-            height: 150px; /* Adjust size as needed */
+            width: 20vw;
+            height: 20vw;
             padding: 10px 20px 0px 20px;
         }
 
         p {
-            margin: 5px 0 0 0;
+            margin: 0;
             color: #fff;
+            font-size: 2vw;
+            
         }
 
         &.selected {
-            border: 2px solid #fff; /* Indicate selection */
-            background-color: #33333344;
+            border: 2px solid #fff;
+            background-color: #1a1d1c98;
+        }
+
+        &:hover {
+            transform: scale(1.05);
         }
     }
 }
@@ -246,6 +268,8 @@ h2, p {
 }
 
 /* Media Queries for Mobile and Smaller Screens */
+
+
 @media (max-width: 768px) {
     #container {
         flex-direction: column;
@@ -262,7 +286,7 @@ h2, p {
         top: auto;
         right: auto;
         left: auto;
-        margin: 10px;
+        margin-bottom: 20px;
         width: auto;
     } 
 }

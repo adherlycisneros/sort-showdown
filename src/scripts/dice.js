@@ -139,6 +139,8 @@ function startGame() {
 function showInstructions() {
     document.getElementById('initial-content').style.display = 'flex';
     document.getElementById('game-content').style.display = 'none';
+
+    gameOver = true;
 }
 
 // Add event listener to the start button
