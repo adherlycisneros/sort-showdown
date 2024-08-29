@@ -1,26 +1,26 @@
 /* styles.scss */
 
-body, html {
+html, body {        
     margin: 0;
     padding: 0;
-    height: 100%;
-    overflow-x: hidden; /* Prevent horizontal scrolling if not needed */
-    overflow-y: auto; /* Allow vertical scrolling */
+    overflow-x: hidden;
+    height: auto;
+    min-height: 100%;
 }
 
 body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0;
     position: relative; /* Added to position the buttons absolutely within the body */
     min-height: 100vh; /* Ensure body takes full height */
+    margin: 0;
 }
 
 .video-background {
     position: relative;
     width: 100%;
-    height: 100vh; /* Fullscreen */
+    min-height: 100vh; 
     overflow: hidden;
 
 
@@ -36,17 +36,52 @@ body {
         transform: translate(-50%, -50%);
         background-size: cover;
     }
-
-   
 }
 
+#initial-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 20px;
 
+    .title-text {
+        margin: 2vw auto;
+    }
+
+    #instructions-container {
+        background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+        padding: 0 5vw;
+        border-radius: 10px;
+        max-width: 85%;
+        margin: 20px auto;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+
+        h2 {
+            color: #ffffff;
+            font-size: 2.5vw;
+            text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.8);
+        }
+
+        ol {
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            padding-left: 20px;
+            margin: 0;
+        } 
+
+        li {
+            margin-bottom: 10px;
+            font-family: 'Play', cursive;
+        }
+    }
+}
 
 .content {
     position: relative;
     z-index: 1; /* Ensure content is above the video */
     display: flex;
     justify-content: center;
+    flex-grow: 1;
 }
 
 #game-content {
@@ -55,12 +90,16 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    position: absolute;
     width: 100%;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-bottom: 20px;
+
+    .title-text {
+        margin-top: 0;
+    }
 }
 
 h2, p {
@@ -73,8 +112,6 @@ h2, p {
 
 
 .title-container {
-    justify-self: center;
-    
 
     .title-text {
         text-align: center;
@@ -91,20 +128,6 @@ h2, p {
     }
 }
 
-#initial-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-
-    li {
-        font-family: 'Play', cursive;
-        font-size: 1.5vw;
-        margin-bottom: 10px;
-
-    }
-}
-
 #container {
     display: flex;
     justify-content: space-around;
@@ -118,7 +141,7 @@ h2, p {
         align-items: center;
         margin: 10px;
         border-radius: 20px;
-        background: rgba(0, 0, 0, 0.200);
+        background: rgba(0, 0, 0, 0.5);
     }
 
     .dice-container {
@@ -129,8 +152,6 @@ h2, p {
         margin: 10px;
         padding: 10px;
         border-radius: 10px;
-        min-height: 150px;
-        width: 100%;
     }
 
     .die {
@@ -164,15 +185,16 @@ h2, p {
 #start-button, #submit-button, .instructions-button, .toggle-dice-button {
     font-family: 'Press Start 2P', cursive;
     font-weight: bold;
-    background-color: #ff4500;
     color: #000;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+    background: linear-gradient(180deg, #ff6512, #e03e00);
     border: 2px solid #000;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.3s;
 
     &:hover {
-        background-color: #333;
+        background: linear-gradient(180deg, #ff9c64, #ff6512);
         transform: scale(1.05);
     }
 }
@@ -186,6 +208,14 @@ h2, p {
 #submit-button {
     padding: 15px 30px;
     font-size: 2vw;
+    margin-bottom: 10px;
+}
+
+.navbtns-container {
+    display: flex;  
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 10px;
 }
 
 .instructions-button, .toggle-dice-button {
@@ -193,15 +223,11 @@ h2, p {
     font-size: 1vw;
 
     &.instructions-button {
-        position: absolute;
-        top: 20px;
-        right: 20px;
+        margin-right: 10px;
     }
 
     &.toggle-dice-button {
-        position: absolute;
-        top: 20px;
-        left: 20px;
+        margin-left: 10px;
     }
 }
 
@@ -209,8 +235,7 @@ h2, p {
 #difficulty-buttons {
     display: flex;
     justify-content: center;
-    gap: 5vw;
-    margin-top: 20px;
+    gap: 3vw;
 
     .difficulty-button {
         display: flex;
@@ -229,8 +254,8 @@ h2, p {
         }
 
         img {
-            width: 20vw;
-            height: 20vw;
+            width: 15vw;
+            height: 15vw;
             padding: 10px 20px 0px 20px;
         }
 
@@ -269,8 +294,24 @@ h2, p {
 
 /* Media Queries for Mobile and Smaller Screens */
 
+@media (min-width: 769px) {
+    #instructions-container li {
+       line-height: 1.5;  
+       font-size: 1.8vw;      
+    }
+
+    #difficulty-buttons {
+        gap: 5vw;
+
+        .difficulty-button img {
+            width: 20vw;
+            height: 20vw;
+        }
+    }
+}
 
 @media (max-width: 768px) {
+
     #container {
         flex-direction: column;
         align-items: center;
@@ -289,6 +330,34 @@ h2, p {
         margin-bottom: 20px;
         width: auto;
     } 
+
+    #instructions-container li {
+        font-size: 2.1vw;
+    }
+}
+
+@media (max-width: 767.98px) {
+    #submit-button, #start-button {
+        font-size: 3vw;
+        padding: 10px 25px;
+    }
+
+    .instructions-button, .toggle-dice-button {
+        font-size: 2.5vw;
+        padding: 10px 10px;
+    }
+
+    #dice-container2 {
+        padding: 0px 8vw !important;
+        gap: 0px !important;
+        margin: 0px !important;
+
+        .die {
+            height: 40px;
+            width: 40px;
+            margin: 5px; 
+        }
+    }
 }
 
 /* FONT IMPORT */

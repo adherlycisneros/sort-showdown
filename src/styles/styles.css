@@ -1,27 +1,27 @@
 /* styles.scss */
 @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Play:wght@700&display=swap");
-body, html {
+html, body {
   margin: 0;
   padding: 0;
-  height: 100%;
-  overflow-x: hidden; /* Prevent horizontal scrolling if not needed */
-  overflow-y: auto; /* Allow vertical scrolling */
+  overflow-x: hidden;
+  height: auto;
+  min-height: 100%;
 }
 
 body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 0;
   position: relative; /* Added to position the buttons absolutely within the body */
   min-height: 100vh; /* Ensure body takes full height */
+  margin: 0;
 }
 
 .video-background {
   position: relative;
   width: 100%;
-  height: 100vh; /* Fullscreen */
+  min-height: 100vh;
   overflow: hidden;
 }
 .video-background video {
@@ -37,11 +37,45 @@ body {
   background-size: cover;
 }
 
+#initial-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 20px;
+}
+#initial-content .title-text {
+  margin: 2vw auto;
+}
+#initial-content #instructions-container {
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+  padding: 0 5vw;
+  border-radius: 10px;
+  max-width: 85%;
+  margin: 20px auto;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+}
+#initial-content #instructions-container h2 {
+  color: #ffffff;
+  font-size: 2.5vw;
+  text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.8);
+}
+#initial-content #instructions-container ol {
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  padding-left: 20px;
+  margin: 0;
+}
+#initial-content #instructions-container li {
+  margin-bottom: 10px;
+  font-family: "Play", cursive;
+}
+
 .content {
   position: relative;
   z-index: 1; /* Ensure content is above the video */
   display: flex;
   justify-content: center;
+  flex-grow: 1;
 }
 
 #game-content {
@@ -50,12 +84,15 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  position: absolute;
   width: 100%;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-bottom: 20px;
+}
+#game-content .title-text {
+  margin-top: 0;
 }
 
 h2, p {
@@ -66,9 +103,6 @@ h2, p {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
-.title-container {
-  justify-self: center;
-}
 .title-container .title-text {
   text-align: center;
   color: #00ffcc;
@@ -80,18 +114,6 @@ h2, p {
 }
 .title-container .title-text .emoji {
   font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif; /* Use system emoji fonts for emojis */
-}
-
-#initial-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-}
-#initial-content li {
-  font-family: "Play", cursive;
-  font-size: 1.5vw;
-  margin-bottom: 10px;
 }
 
 #container {
@@ -107,7 +129,7 @@ h2, p {
   align-items: center;
   margin: 10px;
   border-radius: 20px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.5);
 }
 #container .dice-container {
   display: flex;
@@ -117,8 +139,6 @@ h2, p {
   margin: 10px;
   padding: 10px;
   border-radius: 10px;
-  min-height: 150px;
-  width: 100%;
 }
 #container .die {
   position: relative;
@@ -147,15 +167,16 @@ h2, p {
 #start-button, #submit-button, .instructions-button, .toggle-dice-button {
   font-family: "Press Start 2P", cursive;
   font-weight: bold;
-  background-color: #ff4500;
   color: #000;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  background: linear-gradient(180deg, #ff6512, #e03e00);
   border: 2px solid #000;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s, transform 0.3s;
 }
 #start-button:hover, #submit-button:hover, .instructions-button:hover, .toggle-dice-button:hover {
-  background-color: #333;
+  background: linear-gradient(180deg, #ff9c64, #ff6512);
   transform: scale(1.05);
 }
 
@@ -168,6 +189,14 @@ h2, p {
 #submit-button {
   padding: 15px 30px;
   font-size: 2vw;
+  margin-bottom: 10px;
+}
+
+.navbtns-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 10px;
 }
 
 .instructions-button, .toggle-dice-button {
@@ -175,21 +204,16 @@ h2, p {
   font-size: 1vw;
 }
 .instructions-button.instructions-button, .toggle-dice-button.instructions-button {
-  position: absolute;
-  top: 20px;
-  right: 20px;
+  margin-right: 10px;
 }
 .instructions-button.toggle-dice-button, .toggle-dice-button.toggle-dice-button {
-  position: absolute;
-  top: 20px;
-  left: 20px;
+  margin-left: 10px;
 }
 
 #difficulty-buttons {
   display: flex;
   justify-content: center;
-  gap: 5vw;
-  margin-top: 20px;
+  gap: 3vw;
 }
 #difficulty-buttons .difficulty-button {
   display: flex;
@@ -207,8 +231,8 @@ h2, p {
   padding: 5px 15px;
 }
 #difficulty-buttons .difficulty-button img {
-  width: 20vw;
-  height: 20vw;
+  width: 15vw;
+  height: 15vw;
   padding: 10px 20px 0px 20px;
 }
 #difficulty-buttons .difficulty-button p {
@@ -239,6 +263,19 @@ h2, p {
   }
 }
 /* Media Queries for Mobile and Smaller Screens */
+@media (min-width: 769px) {
+  #instructions-container li {
+    line-height: 1.5;
+    font-size: 1.8vw;
+  }
+  #difficulty-buttons {
+    gap: 5vw;
+  }
+  #difficulty-buttons .difficulty-button img {
+    width: 20vw;
+    height: 20vw;
+  }
+}
 @media (max-width: 768px) {
   #container {
     flex-direction: column;
@@ -255,6 +292,29 @@ h2, p {
     left: auto;
     margin-bottom: 20px;
     width: auto;
+  }
+  #instructions-container li {
+    font-size: 2.1vw;
+  }
+}
+@media (max-width: 767.98px) {
+  #submit-button, #start-button {
+    font-size: 3vw;
+    padding: 10px 25px;
+  }
+  .instructions-button, .toggle-dice-button {
+    font-size: 2.5vw;
+    padding: 10px 10px;
+  }
+  #dice-container2 {
+    padding: 0px 8vw !important;
+    gap: 0px !important;
+    margin: 0px !important;
+  }
+  #dice-container2 .die {
+    height: 40px;
+    width: 40px;
+    margin: 5px;
   }
 }
 /* FONT IMPORT */

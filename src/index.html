@@ -19,11 +19,11 @@
                 <h1 class="title-text"><span class="emoji">🎲</span> SORT SHOWDOWN <span class="emoji">🎲</span></h1>
             </div>
             <div id="instructions-container">
-                <h2>Instructions</h2>
+                <h2>HOW TO PLAY:</h2>
                     <ol>
-                        <li>Choose an opponent to play against below.</li>
-                        <li>When you are finished selecting, press the Start button.</li>
-                        <li>Sort the dice in ascending numerical order before your oponent finishes.</li>
+                        <li>Choose an opponent to play against and press the START button.</li>
+                        <li>Sort the dice in ascending numerical order faster than your opponent.</li>
+                        <li>Toggle between 6 and 9 dice while on the game screen for extra fun!</li>
                     </ol>
             </div>
             <div id="difficulty-buttons">
@@ -49,24 +49,26 @@
                     </div>
                 </div>
             </div>
-            <button id="start-button">Start</button>
+            <button id="start-button">START</button>
         </div>
     </div>
 
     <div id="game-content" style="display: none;">
+        <div class="navbtns-container">
+            <button id="toggle-dice-button" class="toggle-dice-button">6 DICE VERSION</button>
+            <button id="instructions-button" class="instructions-button">INSTRUCTIONS</button>
+        </div>
         <div class="title-container">
             <h1 class="title-text"><span class="emoji">🎲</span> SORT SHOWDOWN <span class="emoji">🎲</span></h1>
         </div>
-        <button id="instructions-button" class="instructions-button">INSTRUCTIONS</button>
-        <button id="toggle-dice-button" class="toggle-dice-button">6 DICE VERSION</button>
         <div id="container">
             <div class="side" id="side1">
-                <h2>Sort these dice</h2>
+                <h2>SORT THESE DICE</h2>
                 <div id="dice-container1" class="dice-container"></div>
                 <button id="submit-button" class="sort-button">DONE</button>
             </div>
             <div class="side" id="side2">
-                <h2 id="computer-sorting-text">Computer sorting...</h2>
+                <h2 id="computer-sorting-text">COMPUTER SORTING...</h2>
                 <div id="dice-container2" class="dice-container"></div>
             </div>
         </div>

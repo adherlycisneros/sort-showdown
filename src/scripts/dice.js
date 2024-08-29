@@ -42,6 +42,8 @@ function generateDice(containerId, numbers) {
 }
 
 // Simulate drag-and-drop animation for the computer with different speeds
+let currentInterval;
+
 function simulateDragAndDrop(containerId, numbers, speed) {
     const diceContainer = document.getElementById(containerId);
     const sortedNumbers = quickSort([...numbers]);
@@ -53,9 +55,9 @@ function simulateDragAndDrop(containerId, numbers, speed) {
     };
 
     let index = 0;
-    const interval = setInterval(() => {
+    currentInterval = setInterval(() => {
         if (index >= sortedNumbers.length) {
-            clearInterval(interval);
+            clearInterval(currentInterval);
             computerFinishedSorting = true;
 
             // Show the "Ohh Too Slow!" message if the user hasn't submitted yet and the game isn't over
@@ -95,9 +97,9 @@ function shuffle(array) {
 // Store the selected difficulty and name map
 let selectedSpeed = 'medium'; // Default speed
 const nameMap = {
-    easy: 'Blake',
-    medium: 'Star',
-    hard: 'Brandon'
+    easy: 'BLAKE',
+    medium: 'STAR',
+    hard: 'LOGAN'
 };
 
 let computerFinishedSorting = false;
@@ -119,7 +121,7 @@ function initializeGame(diceCount) {
     generateDice('dice-container2', shuffledNumbers); // Initialize unsorted dice for the computer
 
     // Set the computer sorting text based on the selected difficulty
-    document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} sorting...`;
+    document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} SORTING...`;
 
     // Simulate drag-and-drop sorting for the computer with selected speed
     setTimeout(() => {
@@ -129,6 +131,7 @@ function initializeGame(diceCount) {
 
 // Function to start the game
 function startGame() {
+    clearPreviousGame(); //Reset game 
     document.getElementById('initial-content').style.display = 'none';
     document.getElementById('game-content').style.display = 'flex';
 
@@ -137,10 +140,17 @@ function startGame() {
 
 // Switch from game content to initial content
 function showInstructions() {
+    clearPreviousGame(); //Reset game
     document.getElementById('initial-content').style.display = 'flex';
     document.getElementById('game-content').style.display = 'none';
+}
 
+//Function to Clear Previous Game
+function clearPreviousGame() {
     gameOver = true;
+    computerFinishedSorting = true;
+    userSubmitted = false;
+    clearInterval(currentInterval);
 }
 
 // Add event listener to the start button
@@ -178,6 +188,7 @@ document.getElementById('submit-button').addEventListener('click', () => {
 
 // Add event listener for the toggle dice version button
 document.getElementById('toggle-dice-button').addEventListener('click', function () {
+    clearPreviousGame();
     const isNineDiceVersion = this.textContent.includes('9');
     this.textContent = isNineDiceVersion ? '6 Dice Version' : '9 Dice Version';
     initializeGame(isNineDiceVersion ? 9 : 6);
