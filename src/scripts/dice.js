@@ -14,6 +14,7 @@ function createDie(number, id) {
     die.dataset.number = number;
     die.style.backgroundImage = `url('assets/images/dice-${number}.png')`;
     die.id = id;
+    die.setAttribute('aria-label', `Dice showing ${number}`);
     return die;
 }
 
