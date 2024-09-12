@@ -12,7 +12,7 @@ function createDie(number, id) {
     const die = document.createElement('div');
     die.className = 'die initial-load';
     die.dataset.number = number;
-    die.style.backgroundImage = `url('assets/images/dice-${number}.png')`;
+    die.style.backgroundImage = `url('src/assets/images/dice-${number}.png')`;
     die.id = id;
     die.setAttribute('aria-label', `Dice showing ${number}`);
     return die;
