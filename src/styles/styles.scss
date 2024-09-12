@@ -167,6 +167,11 @@ h2, p {
         border-radius: 10px;
         box-shadow: 0 20px 30px rgba(0, 0, 0, 0.6);
         cursor: pointer;
+        touch-action: none; /* Prevent default touch behaviors */
+        -webkit-touch-callout: none;
+        -webkit-user-select: none; /* Prevent selection on long press */
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
 
         &.initial-load {
             animation: fall 1s ease-in-out forwards;

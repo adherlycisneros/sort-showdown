@@ -38,6 +38,7 @@ function generateDice(containerId, numbers) {
         Sortable.create(diceContainer, {
             animation: 150,
             ghostClass: 'sortable-ghost',
+            touchStartThreshold: 4,
         });
     }
 }
