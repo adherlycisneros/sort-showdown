@@ -80,7 +80,7 @@ body {
 
 #game-content {
   display: none;
-  background-image: url("../assets/images/retro-background.png");
+  background-image: url("assets/images/retro-background.PNG");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -153,6 +153,11 @@ h2, p {
   border-radius: 10px;
   box-shadow: 0 20px 30px rgba(0, 0, 0, 0.6);
   cursor: pointer;
+  touch-action: none; /* Prevent default touch behaviors */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none; /* Prevent selection on long press */
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 #container .die.initial-load {
   animation: fall 1s ease-in-out forwards;
