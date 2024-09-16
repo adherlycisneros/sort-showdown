@@ -194,4 +194,17 @@ document.getElementById('toggle-dice-button').addEventListener('click', function
     const isNineDiceVersion = this.textContent.includes('9');
     this.textContent = isNineDiceVersion ? '6 Dice Version' : '9 Dice Version';
     initializeGame(isNineDiceVersion ? 9 : 6);
+
+    // Delay the reinitialization to ensure the elements are fully rendered before reapplying Sortable.js
+    setTimeout(() => {
+        initializeGame(isNineDiceVersion ? 9 : 6);
+        
+        // Re-initialize Sortable after generating the dice
+        Sortable.create(document.getElementById('dice-container1'), {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            touchStartThreshold: 4,
+        });
+    }, 100); // Short delay of 100ms to ensure the elements are in place
+    
 });
