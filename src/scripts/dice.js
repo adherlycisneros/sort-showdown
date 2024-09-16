@@ -35,12 +35,20 @@ function generateDice(containerId, numbers) {
 
     // Make the dice container sortable if it's the user's container
     if (containerId === 'dice-container1') {
-        Sortable.create(diceContainer, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            touchStartThreshold: 4,
-        });
+        initializeSortable();
     }
+}
+
+// Reinitialize Sortable.js for the user dice container
+function initializeSortable() {
+    const diceContainer = document.getElementById('dice-container1');
+    Sortable.create(diceContainer, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        touchStartThreshold: 4, // For better touch performance on mobile
+    });
+    console.log('Sortable initialized');
+
 }
 
 // Simulate drag-and-drop animation for the computer with different speeds
@@ -197,5 +205,8 @@ document.getElementById('toggle-dice-button').addEventListener('click', function
     this.textContent = isNineDiceVersion ? '6 Dice Version' : '9 Dice Version';
     initializeGame(isNineDiceVersion ? 9 : 6);
 
-    
+     // Reinitialize Sortable for the new dice
+     setTimeout(() => {
+        initializeSortable(); // Ensure Sortable works on new dice
+    }, 200); // Short delay to ensure the elements are rendered
 });
