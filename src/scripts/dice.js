@@ -129,15 +129,7 @@ function initializeGame(diceCount) {
     setTimeout(() => {
         simulateDragAndDrop('dice-container2', shuffledNumbers, selectedSpeed);
     }, shuffledNumbers.length * 100 + 500); // Adjust timing to match the end of the animation
-
-    // Make the dice container sortable if it's the user's container
-    if (containerId === 'dice-container1') {
-        Sortable.create(diceContainer, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            touchStartThreshold: 4,
-        });
-    }
+    
 }
 
 
