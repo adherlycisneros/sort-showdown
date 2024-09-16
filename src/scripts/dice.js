@@ -37,7 +37,7 @@ function generateDice(containerId, numbers) {
     if (diceContainer.Sortable) {
         diceContainer.Sortable.destroy();  // Remove existing Sortable instance
     }
-    
+
     // Make the dice container sortable if it's the user's container
     if (containerId === 'dice-container1') {
         initializeSortable();
@@ -135,6 +135,10 @@ function initializeGame(diceCount) {
     generateDice('dice-container1', shuffledNumbers); // Initialize unsorted dice for the user
     generateDice('dice-container2', shuffledNumbers); // Initialize unsorted dice for the computer
 
+    if (containerId === 'dice-container1') {
+        initializeSortable();
+    }
+    
     // Set the computer sorting text based on the selected difficulty
     document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} SORTING...`;
 
