@@ -33,6 +33,11 @@ function generateDice(containerId, numbers) {
         diceElements.forEach(die => die.classList.remove('initial-load'));
     }, 1000);
 
+    // Destroy existing Sortable instance before reinitializing
+    if (diceContainer.Sortable) {
+        diceContainer.Sortable.destroy();  // Remove existing Sortable instance
+    }
+    
     // Make the dice container sortable if it's the user's container
     if (containerId === 'dice-container1') {
         initializeSortable();
