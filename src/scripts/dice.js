@@ -122,6 +122,15 @@ function initializeGame(diceCount) {
     generateDice('dice-container1', shuffledNumbers); // Initialize unsorted dice for the user
     generateDice('dice-container2', shuffledNumbers); // Initialize unsorted dice for the computer
 
+    // Make the dice container sortable if it's the user's container
+    if (containerId === 'dice-container1') {
+        Sortable.create(diceContainer, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            touchStartThreshold: 4,
+        });
+    }
+    
     // Set the computer sorting text based on the selected difficulty
     document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} SORTING...`;
 
