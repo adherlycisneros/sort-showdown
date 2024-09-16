@@ -122,6 +122,14 @@ function initializeGame(diceCount) {
     generateDice('dice-container1', shuffledNumbers); // Initialize unsorted dice for the user
     generateDice('dice-container2', shuffledNumbers); // Initialize unsorted dice for the computer
 
+    // Set the computer sorting text based on the selected difficulty
+    document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} SORTING...`;
+
+    // Simulate drag-and-drop sorting for the computer with selected speed
+    setTimeout(() => {
+        simulateDragAndDrop('dice-container2', shuffledNumbers, selectedSpeed);
+    }, shuffledNumbers.length * 100 + 500); // Adjust timing to match the end of the animation
+
     // Make the dice container sortable if it's the user's container
     if (containerId === 'dice-container1') {
         Sortable.create(diceContainer, {
@@ -130,15 +138,8 @@ function initializeGame(diceCount) {
             touchStartThreshold: 4,
         });
     }
-    
-    // Set the computer sorting text based on the selected difficulty
-    document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} SORTING...`;
-
-    // Simulate drag-and-drop sorting for the computer with selected speed
-    setTimeout(() => {
-        simulateDragAndDrop('dice-container2', shuffledNumbers, selectedSpeed);
-    }, shuffledNumbers.length * 100 + 500); // Adjust timing to match the end of the animation
 }
+
 
 // Function to start the game
 function startGame() {
