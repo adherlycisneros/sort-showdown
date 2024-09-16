@@ -122,22 +122,15 @@ function initializeGame(diceCount) {
     generateDice('dice-container1', shuffledNumbers); // Initialize unsorted dice for the user
     generateDice('dice-container2', shuffledNumbers); // Initialize unsorted dice for the computer
 
-    // Remove any existing Sortable instance to avoid conflicts
-    if (Sortable.get(document.getElementById('dice-container1'))) {
-        Sortable.get(document.getElementById('dice-container1')).destroy();
-    }
-
-    // Apply Sortable.js to the user dice container (dice-container1)
-    setTimeout(() => {
-        Sortable.create(document.getElementById('dice-container1'), {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            touchStartThreshold: 4,
-        });
-    }, 100); // Small delay to ensure elements are rendered
-
     // Set the computer sorting text based on the selected difficulty
     document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} SORTING...`;
+
+    // Re-initialize Sortable after generating the dice
+    Sortable.create(document.getElementById('dice-container1'), {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        touchStartThreshold: 4,
+    });
 
     // Simulate drag-and-drop sorting for the computer with selected speed
     setTimeout(() => {
