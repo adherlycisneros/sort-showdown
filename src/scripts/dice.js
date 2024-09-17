@@ -33,11 +33,6 @@ function generateDice(containerId, numbers) {
         diceElements.forEach(die => die.classList.remove('initial-load'));
     }, 1000);
 
-    // Destroy existing Sortable instance before reinitializing
-    if (diceContainer.Sortable) {
-        diceContainer.Sortable.destroy();  // Remove existing Sortable instance
-    }
-
     // Make the dice container sortable if it's the user's container
     if (containerId === 'dice-container1') {
         initializeSortable();
@@ -47,13 +42,24 @@ function generateDice(containerId, numbers) {
 // Reinitialize Sortable.js for the user dice container
 function initializeSortable() {
     const diceContainer = document.getElementById('dice-container1');
-    Sortable.create(diceContainer, {
+
+    // Check if Sortable has already been initialized and destroy it
+    if (diceContainer._sortableInstance) {
+        diceContainer._sortableInstance.destroy();
+    }
+
+    // Reinitialize Sortable for the user's dice container
+    diceContainer._sortableInstance = Sortable.create(diceContainer, {
         animation: 150,
         ghostClass: 'sortable-ghost',
         touchStartThreshold: 4, // For better touch performance on mobile
     });
-    console.log('Sortable initialized');
-
+    
+//    Sortable.create(diceContainer, {
+//        animation: 150,
+//        ghostClass: 'sortable-ghost',
+//        touchStartThreshold: 4, // For better touch performance on mobile
+//    });
 }
 
 // Simulate drag-and-drop animation for the computer with different speeds
@@ -129,18 +135,24 @@ function initializeGame(diceCount) {
     userSubmitted = false;
     gameOver = false;
 
+    
     currentNumbers = diceCount === 9 ? [1, 5, 9, 3, 7, 2, 8, 6, 4] : [1, 5, 3, 7, 2, 6];
     const shuffledNumbers = shuffle([...currentNumbers]); // Create a shuffled copy of the numbers
+
+    // Clear the previous dice containers ADDED DELETE
+    document.getElementById('dice-container1').innerHTML = ''; 
+    document.getElementById('dice-container2').innerHTML = '';
 
     generateDice('dice-container1', shuffledNumbers); // Initialize unsorted dice for the user
     generateDice('dice-container2', shuffledNumbers); // Initialize unsorted dice for the computer
 
-    if (containerId === 'dice-container1') {
-        initializeSortable();
-    }
-    
     // Set the computer sorting text based on the selected difficulty
     document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} SORTING...`;
+
+    // Re-initialize Sortable after generating the dice ADDED DELETE
+    setTimeout(() => {
+        initializeSortable(); // Ensure Sortable.js is initialized after the DOM is updated
+    }, 100); // Short delay to ensure the dice are in place before initializing Sortable
 
     // Simulate drag-and-drop sorting for the computer with selected speed
     setTimeout(() => {
@@ -172,6 +184,16 @@ function clearPreviousGame() {
     computerFinishedSorting = true;
     userSubmitted = false;
     clearInterval(currentInterval);
+
+    // Clear both user and computer dice containers ADDED DELTE
+    document.getElementById('dice-container1').innerHTML = ''; // Clear user dice
+    document.getElementById('dice-container2').innerHTML = ''; // Clear computer dice
+
+    // Make sure any existing Sortable instance is destroyed or removed ADDED DELTE
+    const diceContainer = document.getElementById('dice-container1');
+    if (diceContainer && diceContainer._sortable) {
+        diceContainer._sortable.destroy(); // Destroy any existing Sortable instance
+    }
 }
 
 // Add event listener to the start button
@@ -212,10 +234,7 @@ document.getElementById('toggle-dice-button').addEventListener('click', function
     clearPreviousGame();
     const isNineDiceVersion = this.textContent.includes('9');
     this.textContent = isNineDiceVersion ? '6 Dice Version' : '9 Dice Version';
-    initializeGame(isNineDiceVersion ? 9 : 6);
 
-     // Reinitialize Sortable for the new dice
-     setTimeout(() => {
-        initializeSortable(); // Ensure Sortable works on new dice
-    }, 200); // Short delay to ensure the elements are rendered
+    initializeGame(isNineDiceVersion ? 9 : 6);
+    
 });
