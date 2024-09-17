@@ -54,12 +54,6 @@ function initializeSortable() {
         ghostClass: 'sortable-ghost',
         touchStartThreshold: 4, // For better touch performance on mobile
     });
-    
-//    Sortable.create(diceContainer, {
-//        animation: 150,
-//        ghostClass: 'sortable-ghost',
-//        touchStartThreshold: 4, // For better touch performance on mobile
-//    });
 }
 
 // Simulate drag-and-drop animation for the computer with different speeds
@@ -139,7 +133,7 @@ function initializeGame(diceCount) {
     currentNumbers = diceCount === 9 ? [1, 5, 9, 3, 7, 2, 8, 6, 4] : [1, 5, 3, 7, 2, 6];
     const shuffledNumbers = shuffle([...currentNumbers]); // Create a shuffled copy of the numbers
 
-    // Clear the previous dice containers ADDED DELETE
+    // Clear the previous dice containers 
     document.getElementById('dice-container1').innerHTML = ''; 
     document.getElementById('dice-container2').innerHTML = '';
 
@@ -149,10 +143,10 @@ function initializeGame(diceCount) {
     // Set the computer sorting text based on the selected difficulty
     document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} SORTING...`;
 
-    // Re-initialize Sortable after generating the dice ADDED DELETE
+    // Re-initialize Sortable after generating the dice 
     setTimeout(() => {
-        initializeSortable(); // Ensure Sortable.js is initialized after the DOM is updated
-    }, 100); // Short delay to ensure the dice are in place before initializing Sortable
+        initializeSortable(); 
+    }, 100); //delay to make sure dice have loaded 
 
     // Simulate drag-and-drop sorting for the computer with selected speed
     setTimeout(() => {
@@ -185,14 +179,14 @@ function clearPreviousGame() {
     userSubmitted = false;
     clearInterval(currentInterval);
 
-    // Clear both user and computer dice containers ADDED DELTE
-    document.getElementById('dice-container1').innerHTML = ''; // Clear user dice
-    document.getElementById('dice-container2').innerHTML = ''; // Clear computer dice
+    // Clear both user and computer dice containers
+    document.getElementById('dice-container1').innerHTML = ''; 
+    document.getElementById('dice-container2').innerHTML = ''; 
 
-    // Make sure any existing Sortable instance is destroyed or removed ADDED DELTE
+    // Make sure any existing Sortable instance is destroyed or removed 
     const diceContainer = document.getElementById('dice-container1');
     if (diceContainer && diceContainer._sortable) {
-        diceContainer._sortable.destroy(); // Destroy any existing Sortable instance
+        diceContainer._sortable.destroy(); // Destroy any existing Sortable event
     }
 }
 
