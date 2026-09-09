@@ -83,3 +83,6 @@ public/
 
 # Mac system files
 .DS_Store
+
+# Agents
+CLAUDE.md
