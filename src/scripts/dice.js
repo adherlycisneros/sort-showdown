@@ -1,3 +1,19 @@
+// Sort Showdown — game logic.
+//
+// Lifecycle model
+// ---------------
+// A "round" is one dealt set of dice plus every piece of async work that belongs
+// to it: the entrance animation, the timeout that starts the opponent, the
+// interval that sorts the opponent's dice, and the SortableJS instance attached
+// to the player's dice.
+//
+// Everything a round owns lives on the `round` object below, so there is exactly
+// one place to start a round (`startRound`) and exactly one place to cancel it
+// (`teardownRound`). Every round also carries an id; async callbacks capture that
+// id and refuse to run if the round has since been replaced. Cancelling the
+// timers is what actually stops the work — the id check is a second line of
+// defence so a callback that escapes cancellation can never touch a newer round.
+
 // Original quicksort algorithm
 const quickSort = (arr) => {
     if (arr.length <= 1) return arr;
@@ -7,7 +23,101 @@ const quickSort = (arr) => {
     return [...quickSort(leftArr), pivot, ...quickSort(rightArr)];
 };
 
-// Function to create a die element
+// The dice values dealt in each mode. The 6-dice mode deliberately skips 4.
+const DICE_SETS = {
+    9: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    6: [1, 2, 3, 5, 6, 7],
+};
+
+// Opponent name and per-die sorting delay for each difficulty.
+const OPPONENTS = {
+    easy: { name: 'BLAKE', dieDelayMs: 1500 },
+    medium: { name: 'STAR', dieDelayMs: 800 },
+    hard: { name: 'LOGAN', dieDelayMs: 400 },
+};
+
+const DEFAULT_DIFFICULTY = 'medium';
+const DEFAULT_DICE_COUNT = 9;
+
+const initialContent = document.getElementById('initial-content');
+const gameContent = document.getElementById('game-content');
+const playerDice = document.getElementById('dice-container1');
+const opponentDice = document.getElementById('dice-container2');
+const opponentHeading = document.getElementById('computer-sorting-text');
+const startButton = document.getElementById('start-button');
+const submitButton = document.getElementById('submit-button');
+const instructionsButton = document.getElementById('instructions-button');
+const toggleDiceButton = document.getElementById('toggle-dice-button');
+
+// Chosen on the instructions screen and kept across rounds, so it is deliberately
+// not part of the per-round state below.
+let selectedDifficulty = DEFAULT_DIFFICULTY;
+
+// Everything owned by the round currently on screen.
+const round = {
+    id: 0,                       // bumped on every teardown; invalidates stale callbacks
+    status: 'idle',              // 'idle' | 'playing' | 'over'
+    diceCount: DEFAULT_DICE_COUNT,
+    opponent: DEFAULT_DIFFICULTY, // locked in when the round starts
+    correctOrder: [],
+    outcome: null,               // 'player' | 'opponent' once the round is decided
+    sortable: null,
+    timeoutIds: new Set(),
+    intervalId: null,
+};
+
+// --- async work owned by the round ------------------------------------------
+
+function scheduleRoundTimeout(callback, delayMs) {
+    const roundId = round.id;
+    const timeoutId = setTimeout(() => {
+        round.timeoutIds.delete(timeoutId);
+        if (round.id !== roundId) return;
+        callback();
+    }, delayMs);
+    round.timeoutIds.add(timeoutId);
+}
+
+function startRoundInterval(callback, delayMs) {
+    const roundId = round.id;
+    round.intervalId = setInterval(() => {
+        if (round.id !== roundId) return;
+        callback();
+    }, delayMs);
+}
+
+function stopRoundTimers() {
+    round.timeoutIds.forEach(clearTimeout);
+    round.timeoutIds.clear();
+    if (round.intervalId !== null) {
+        clearInterval(round.intervalId);
+        round.intervalId = null;
+    }
+}
+
+// --- SortableJS instance owned by the round ---------------------------------
+
+function createSortable() {
+    if (typeof Sortable === 'undefined') {
+        console.error('SortableJS did not load; the dice cannot be dragged.');
+        return null;
+    }
+    return Sortable.create(playerDice, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        touchStartThreshold: 4, // For better touch performance on mobile
+    });
+}
+
+function destroySortable() {
+    if (round.sortable) {
+        round.sortable.destroy();
+        round.sortable = null;
+    }
+}
+
+// --- rendering --------------------------------------------------------------
+
 function createDie(number, id) {
     const die = document.createElement('div');
     die.className = 'die initial-load';
@@ -15,90 +125,82 @@ function createDie(number, id) {
     die.style.backgroundImage = `url('src/assets/images/dice-${number}.png')`;
     die.id = id;
     die.setAttribute('aria-label', `Dice showing ${number}`);
+    // Drop the entrance-animation class when the animation itself ends, so the
+    // cleanup cannot outlive the die or bleed into a later round.
+    die.addEventListener('animationend', () => die.classList.remove('initial-load'), { once: true });
     return die;
 }
 
-// Generate and display dice for a given container
-function generateDice(containerId, numbers) {
-    const diceContainer = document.getElementById(containerId);
-    diceContainer.innerHTML = ''; // Clear any existing dice
+function renderDice(container, numbers) {
+    container.innerHTML = '';
     numbers.forEach(number => {
-        const die = createDie(number, `${containerId}-die-${number}`);
-        diceContainer.appendChild(die);
-    });
-
-    // Remove initial load class after animation
-    setTimeout(() => {
-        const diceElements = diceContainer.querySelectorAll('.die');
-        diceElements.forEach(die => die.classList.remove('initial-load'));
-    }, 1000);
-
-    // Make the dice container sortable if it's the user's container
-    if (containerId === 'dice-container1') {
-        initializeSortable();
-    }
-}
-
-// Reinitialize Sortable.js for the user dice container
-function initializeSortable() {
-    const diceContainer = document.getElementById('dice-container1');
-
-    // Check if Sortable has already been initialized and destroy it
-    if (diceContainer._sortableInstance) {
-        diceContainer._sortableInstance.destroy();
-    }
-
-    // Reinitialize Sortable for the user's dice container
-    diceContainer._sortableInstance = Sortable.create(diceContainer, {
-        animation: 150,
-        ghostClass: 'sortable-ghost',
-        touchStartThreshold: 4, // For better touch performance on mobile
+        container.appendChild(createDie(number, `${container.id}-die-${number}`));
     });
 }
 
-// Simulate drag-and-drop animation for the computer with different speeds
-let currentInterval;
+// --- round lifecycle --------------------------------------------------------
 
-function simulateDragAndDrop(containerId, numbers, speed) {
-    const diceContainer = document.getElementById(containerId);
-    const sortedNumbers = quickSort([...numbers]);
+// The single cancellation path: no timer, Sortable instance or die from the
+// outgoing round survives this call.
+function teardownRound() {
+    round.id += 1;
+    round.status = 'idle';
+    round.outcome = null;
+    stopRoundTimers();
+    destroySortable();
+    playerDice.innerHTML = '';
+    opponentDice.innerHTML = '';
+}
 
-    const speedMap = {
-        easy: 1500,
-        medium: 800,
-        hard: 400
-    };
+// The single start path: replaces whatever round was running.
+function startRound(diceCount) {
+    teardownRound();
 
+    round.status = 'playing';
+    round.diceCount = diceCount;
+    round.opponent = selectedDifficulty;
+
+    const numbers = DICE_SETS[diceCount];
+    round.correctOrder = quickSort([...numbers]);
+    const shuffledNumbers = shuffle([...numbers]);
+
+    renderDice(playerDice, shuffledNumbers);
+    renderDice(opponentDice, shuffledNumbers);
+    round.sortable = createSortable();
+
+    opponentHeading.textContent = `${OPPONENTS[round.opponent].name} SORTING...`;
+    toggleDiceButton.textContent = `${diceCount === 9 ? 6 : 9} DICE VERSION`;
+
+    // Let the dice finish dropping in before the opponent starts sorting.
+    scheduleRoundTimeout(startOpponentSort, shuffledNumbers.length * 100 + 500);
+}
+
+function finishRound(outcome) {
+    // Stop the opponent before the blocking alert, so no further dice move while
+    // the result is on screen.
+    stopRoundTimers();
+    round.status = 'over';
+    round.outcome = outcome;
+    alert(outcome === 'player' ? 'You win!' : 'Ohh Too Slow! Try Again');
+}
+
+// Moves the opponent's dice into sorted order, one die per tick.
+function startOpponentSort() {
+    const sortedNumbers = round.correctOrder;
     let index = 0;
-    currentInterval = setInterval(() => {
-        if (index >= sortedNumbers.length) {
-            clearInterval(currentInterval);
-            computerFinishedSorting = true;
 
-            // Show the "Ohh Too Slow!" message if the user hasn't submitted yet and the game isn't over
-            if (!userSubmitted && !gameOver) {
-                alert("Ohh Too Slow! Try Again");
-                gameOver = true; // Mark the game as over
-            }
+    startRoundInterval(() => {
+        if (index >= sortedNumbers.length) {
+            finishRound('opponent');
             return;
         }
-
-        const number = sortedNumbers[index];
-        const die = document.querySelector(`#${containerId} .die[data-number='${number}']`);
-
-        // Move die to the new position
-        diceContainer.appendChild(die);
-
-        index++;
-    }, speedMap[speed]); // Adjust the timing based on difficulty level
+        const die = opponentDice.querySelector(`.die[data-number='${sortedNumbers[index]}']`);
+        if (die) opponentDice.appendChild(die);
+        index += 1;
+    }, OPPONENTS[round.opponent].dieDelayMs);
 }
 
-// Check if the dice are sorted correctly
-function checkSorted(containerId, correctOrder) {
-    const diceElements = Array.from(document.querySelectorAll(`#${containerId} .die`));
-    const userOrder = diceElements.map(die => parseInt(die.dataset.number));
-    return JSON.stringify(userOrder) === JSON.stringify(correctOrder);
-}
+// --- player actions ---------------------------------------------------------
 
 // Generate random order of numbers
 function shuffle(array) {
@@ -109,126 +211,58 @@ function shuffle(array) {
     return array;
 }
 
-// Store the selected difficulty and name map
-let selectedSpeed = 'medium'; // Default speed
-const nameMap = {
-    easy: 'BLAKE',
-    medium: 'STAR',
-    hard: 'LOGAN'
-};
-
-let computerFinishedSorting = false;
-let userSubmitted = false;
-let gameOver = false;
-let currentNumbers = []; // To keep track of current numbers based on dice count
-
-// Function to initialize the game with specified dice count
-function initializeGame(diceCount) {
-    // Reset flags
-    computerFinishedSorting = false;
-    userSubmitted = false;
-    gameOver = false;
-
-    
-    currentNumbers = diceCount === 9 ? [1, 5, 9, 3, 7, 2, 8, 6, 4] : [1, 5, 3, 7, 2, 6];
-    const shuffledNumbers = shuffle([...currentNumbers]); // Create a shuffled copy of the numbers
-
-    // Clear the previous dice containers 
-    document.getElementById('dice-container1').innerHTML = ''; 
-    document.getElementById('dice-container2').innerHTML = '';
-
-    generateDice('dice-container1', shuffledNumbers); // Initialize unsorted dice for the user
-    generateDice('dice-container2', shuffledNumbers); // Initialize unsorted dice for the computer
-
-    // Set the computer sorting text based on the selected difficulty
-    document.getElementById('computer-sorting-text').textContent = `${nameMap[selectedSpeed]} SORTING...`;
-
-    // Re-initialize Sortable after generating the dice 
-    setTimeout(() => {
-        initializeSortable(); 
-    }, 100); //delay to make sure dice have loaded 
-
-    // Simulate drag-and-drop sorting for the computer with selected speed
-    setTimeout(() => {
-        simulateDragAndDrop('dice-container2', shuffledNumbers, selectedSpeed);
-    }, shuffledNumbers.length * 100 + 500); // Adjust timing to match the end of the animation
-    
+function isPlayerOrderCorrect() {
+    const playerOrder = Array.from(playerDice.querySelectorAll('.die'))
+        .map(die => parseInt(die.dataset.number, 10));
+    return playerOrder.join(',') === round.correctOrder.join(',');
 }
 
+function submitPlayerOrder() {
+    if (round.status !== 'playing') return;
 
-// Function to start the game
-function startGame() {
-    clearPreviousGame(); //Reset game 
-    document.getElementById('initial-content').style.display = 'none';
-    document.getElementById('game-content').style.display = 'flex';
-
-    initializeGame(9); // Start with 9 dice by default
-}
-
-// Switch from game content to initial content
-function showInstructions() {
-    clearPreviousGame(); //Reset game
-    document.getElementById('initial-content').style.display = 'flex';
-    document.getElementById('game-content').style.display = 'none';
-}
-
-//Function to Clear Previous Game
-function clearPreviousGame() {
-    gameOver = true;
-    computerFinishedSorting = true;
-    userSubmitted = false;
-    clearInterval(currentInterval);
-
-    // Clear both user and computer dice containers
-    document.getElementById('dice-container1').innerHTML = ''; 
-    document.getElementById('dice-container2').innerHTML = ''; 
-
-    // Make sure any existing Sortable instance is destroyed or removed 
-    const diceContainer = document.getElementById('dice-container1');
-    if (diceContainer && diceContainer._sortable) {
-        diceContainer._sortable.destroy(); // Destroy any existing Sortable event
+    if (!isPlayerOrderCorrect()) {
+        alert('Try again!');
+        return;
     }
+    finishRound('player');
 }
 
-// Add event listener to the start button
-document.getElementById('start-button').addEventListener('click', startGame);
+// --- screens ----------------------------------------------------------------
 
-// Add event listener to the instructions button
-document.getElementById('instructions-button').addEventListener('click', showInstructions);
+function startGame() {
+    initialContent.style.display = 'none';
+    gameContent.style.display = 'flex';
+    startRound(DEFAULT_DICE_COUNT);
+}
 
-// Add event listener to the difficulty buttons
+function showInstructions() {
+    teardownRound();
+    initialContent.style.display = 'flex';
+    gameContent.style.display = 'none';
+}
+
+function updateDifficultySelection() {
+    document.querySelectorAll('.difficulty-button').forEach(button => {
+        button.classList.toggle('selected', button.dataset.speed === selectedDifficulty);
+    });
+}
+
+// --- wiring -----------------------------------------------------------------
+
+startButton.addEventListener('click', startGame);
+instructionsButton.addEventListener('click', showInstructions);
+submitButton.addEventListener('click', submitPlayerOrder);
+
+toggleDiceButton.addEventListener('click', () => {
+    startRound(round.diceCount === 9 ? 6 : 9);
+});
+
 document.querySelectorAll('.difficulty-button').forEach(button => {
     button.addEventListener('click', () => {
-        selectedSpeed = button.dataset.speed;
-        document.querySelectorAll('.difficulty-button').forEach(btn => btn.classList.remove('selected'));
-        button.classList.add('selected');
+        selectedDifficulty = button.dataset.speed;
+        updateDifficultySelection();
     });
 });
 
-// Add event listener for the submit button (attach only once)
-document.getElementById('submit-button').addEventListener('click', () => {
-    if (gameOver) return; // Prevent further actions if the game is over
-
-    userSubmitted = true; // Mark that the user has submitted
-    if (checkSorted('dice-container1', quickSort([...currentNumbers]))) {
-        if (!computerFinishedSorting) {
-            alert('You win!');
-            gameOver = true; // Mark the game as over
-        } else {
-            alert('Ohh Too Slow! Try Again');
-        }
-    } else {
-        alert('Try again!');
-        userSubmitted = false; // Reset to allow "Ohh Too Slow!" to trigger later
-    }
-});
-
-// Add event listener for the toggle dice version button
-document.getElementById('toggle-dice-button').addEventListener('click', function () {
-    clearPreviousGame();
-    const isNineDiceVersion = this.textContent.includes('9');
-    this.textContent = isNineDiceVersion ? '6 Dice Version' : '9 Dice Version';
-
-    initializeGame(isNineDiceVersion ? 9 : 6);
-    
-});
+// Show the default opponent as selected so the UI matches the game state.
+updateDifficultySelection();
