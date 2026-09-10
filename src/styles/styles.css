@@ -37,6 +37,26 @@ body {
   background-size: cover;
 }
 
+/* Screens are shown and hidden with the `hidden` attribute. The id selectors on
+   the screens themselves out-specify the browser default, so restate it here. */
+#initial-content[hidden],
+#game-content[hidden] {
+  display: none;
+}
+
+/* Available to assistive technology, not painted. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 #initial-content {
   display: flex;
   flex-direction: column;
@@ -79,7 +99,6 @@ body {
 }
 
 #game-content {
-  display: none;
   background-image: url("/sort-showdown/src/assets/images/retro-background.png");
   background-size: cover;
   background-position: center;
@@ -122,6 +141,11 @@ h2, p {
   width: 100%;
   max-width: 800px;
   margin-top: 20px;
+  /* The playable face is a real <button>, so strip only the UA chrome that
+     would fight the dice artwork. Buttons default to border-box, which would
+     make a playable die 2px smaller than an opponent's. */
+  /* A picked-up die needs to be visible, not only announced. Dashed keeps it
+     distinct from the solid focus ring rather than relying on colour alone. */
 }
 #container .side {
   display: flex;
@@ -132,6 +156,7 @@ h2, p {
   background: rgba(0, 0, 0, 0.5);
 }
 #container .dice-container {
+  list-style: none;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -140,11 +165,17 @@ h2, p {
   padding: 10px;
   border-radius: 10px;
 }
+#container .die-slot {
+  display: flex;
+  margin: 10px;
+}
 #container .die {
+  display: block;
   position: relative;
   width: 80px;
   height: 80px;
-  margin: 10px;
+  padding: 0;
+  background-color: transparent;
   background-size: cover;
   text-align: center;
   line-height: 80px;
@@ -162,16 +193,31 @@ h2, p {
 #container .die.initial-load {
   animation: fall 1s ease-in-out forwards;
 }
-#container #dice-container1 .die:hover {
+#container button.die {
+  box-sizing: content-box;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+}
+#container #dice-container1 .die:enabled:hover {
   transform: scale(1.05);
+}
+#container button.die:disabled {
+  cursor: default;
+}
+#container #dice-container1 .die.is-grabbed {
+  outline: 3px dashed #00ffcc;
+  outline-offset: 3px;
+  transform: translateY(-6px);
 }
 #container #dice-container2 .die:hover {
   cursor: default;
 }
 
-#start-button, #submit-button, .instructions-button, .toggle-dice-button {
+#start-button, #submit-button, .instructions-button, .toggle-dice-button, .result-button {
   font-family: "Press Start 2P", cursive;
   font-weight: bold;
+  min-height: 44px;
   color: #000;
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
   background: linear-gradient(180deg, #ff6512, #e03e00);
@@ -180,9 +226,14 @@ h2, p {
   cursor: pointer;
   transition: background-color 0.3s, transform 0.3s;
 }
-#start-button:hover, #submit-button:hover, .instructions-button:hover, .toggle-dice-button:hover {
+#start-button:hover, #submit-button:hover, .instructions-button:hover, .toggle-dice-button:hover, .result-button:hover {
   background: linear-gradient(180deg, #ff9c64, #ff6512);
   transform: scale(1.05);
+}
+#start-button:disabled, #submit-button:disabled, .instructions-button:disabled, .toggle-dice-button:disabled, .result-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
 }
 
 #start-button {
@@ -219,38 +270,159 @@ h2, p {
   display: flex;
   justify-content: center;
   gap: 3vw;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  /* Each card is the label for its radio, so the native control carries the
+     selected state and the keyboard behaviour. */
 }
 #difficulty-buttons .difficulty-button {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   cursor: pointer;
+  /* Reserved so selecting a card cannot nudge the row. */
+  border: 2px solid transparent;
   border-radius: 10px;
   padding: 10px;
   transition: background-color 0.3s, box-shadow 0.3s;
 }
+#difficulty-buttons .difficulty-button .difficulty-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
 #difficulty-buttons .difficulty-button .difficulty-text {
+  display: block;
   background-color: rgba(255, 68, 0, 0.418);
   border-radius: 5px;
-  border: #000 5px;
   padding: 5px 15px;
+  color: #fff;
+  text-align: center;
+  font-family: "Play", cursive;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+#difficulty-buttons .difficulty-button .difficulty-level,
+#difficulty-buttons .difficulty-button .difficulty-opponent {
+  display: block;
+  font-size: 2vw;
 }
 #difficulty-buttons .difficulty-button img {
   width: 15vw;
   height: 15vw;
   padding: 10px 20px 0px 20px;
 }
-#difficulty-buttons .difficulty-button p {
-  margin: 0;
-  color: #fff;
-  font-size: 2vw;
+#difficulty-buttons .difficulty-button:has(.difficulty-input:focus) {
+  outline: 3px solid #00ffcc;
+  outline-offset: 3px;
 }
-#difficulty-buttons .difficulty-button.selected {
-  border: 2px solid #fff;
+#difficulty-buttons .difficulty-button:has(.difficulty-input:checked) {
+  border-color: #fff;
   background-color: rgba(26, 29, 28, 0.5960784314);
 }
 #difficulty-buttons .difficulty-button:hover {
   transform: scale(1.05);
+}
+
+/* --- round result and submission feedback ------------------------------- */
+.round-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  max-width: min(90%, 640px);
+  margin: 20px 10px 0;
+  padding: 20px 25px;
+  text-align: center;
+  border: 3px solid #00ffcc;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.85);
+  box-shadow: 0 0 25px rgba(0, 255, 204, 0.35);
+}
+
+.round-result[hidden] {
+  display: none;
+}
+
+.round-result-title {
+  margin: 0;
+  color: #00ffcc;
+  font-family: "Press Start 2P", cursive;
+  font-size: clamp(0.95rem, 2.2vw, 1.6rem);
+  line-height: 1.5;
+  text-shadow: 3px 3px 0 #000;
+}
+
+.round-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.result-button {
+  padding: 12px 20px;
+  font-size: clamp(0.6rem, 1.1vw, 0.85rem);
+}
+
+/* Space and padding are always reserved, so showing the message cannot shift the
+   board. The plate only appears with the message, and keeps the text legible
+   wherever the translucent panel happens to sit. */
+.submit-feedback {
+  min-height: 1.5em;
+  margin: 0 10px 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: #ffd166;
+  font-family: "Press Start 2P", cursive;
+  font-size: clamp(0.6rem, 1.2vw, 0.9rem);
+  line-height: 1.5;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.submit-feedback:not(:empty) {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.dice-hint {
+  max-width: 90%;
+  margin: 10px 15px 0;
+  font-size: clamp(0.7rem, 1.1vw, 0.9rem);
+}
+
+/* --- focus states --------------------------------------------------------- */
+/* A bright ring plus a dark halo, so the indicator reads over both the neon sky
+   and the dark grid. outline-offset keeps it clear of the control without
+   affecting layout. */
+#start-button:focus-visible,
+#submit-button:focus-visible,
+.instructions-button:focus-visible,
+.toggle-dice-button:focus-visible,
+.result-button:focus-visible {
+  outline: 3px solid #00ffcc;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.85);
+}
+
+/* Headings only take focus programmatically, so they get a ring without a halo. */
+.title-text:focus-visible,
+#player-heading:focus-visible,
+.round-result-title:focus-visible {
+  outline: 3px solid #00ffcc;
+  outline-offset: 6px;
+}
+
+/* The ring sits on the button, which covers the die exactly, so the die keeps
+   its own drop shadow untouched. */
+#container #dice-container1 .die:focus-visible {
+  outline: 3px solid #00ffcc;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.85);
 }
 
 @keyframes fall {
@@ -316,10 +488,12 @@ h2, p {
     gap: 0px !important;
     margin: 0px !important;
   }
+  #dice-container2 .die-slot {
+    margin: 5px;
+  }
   #dice-container2 .die {
     height: 40px;
     width: 40px;
-    margin: 5px;
   }
 }
 /* FONT IMPORT */

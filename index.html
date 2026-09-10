@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sort Showdown</title>
-    
+
     <!-- Favicon links -->
     <link rel="apple-touch-icon" sizes="180x180" href="src/assets/favicon-package/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="src//assets/favicon-package/favicon-32x32.png">
@@ -13,7 +13,7 @@
     <link rel="mask-icon" href="src/assets/favicone-package/safari-pinned-tab.svg" color="#5bbad5">
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
-    
+
     <!-- Stylesheet and script -->
     <link rel="stylesheet" href="src/styles/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.7/Sortable.min.js"
@@ -23,70 +23,96 @@
 
 <body>
     <div class="video-background">
-        <video autoplay muted loop id="video">
+        <!-- playsinline lets iOS Safari play this decorative video inline rather
+             than taking it fullscreen. Note it does not stop Safari painting a
+             play control when it declines to autoplay at all, as in Low Power
+             Mode; that fallback is Stage 4 work. -->
+        <video autoplay muted loop playsinline webkit-playsinline id="video" aria-hidden="true" tabindex="-1">
             <source src="src/assets/videos/retro-background.mp4" type="video/mp4">
         </video>
-    
+
+    <main>
     <div class="content">
-        <div id="initial-content">
+        <section id="initial-content">
             <div class="title-container">
-                <h1 class="title-text"><span class="emoji">🎲</span> SORT SHOWDOWN <span class="emoji">🎲</span></h1>
+                <h1 class="title-text" id="instructions-title" tabindex="-1"><span class="emoji" aria-hidden="true">🎲</span> SORT SHOWDOWN <span class="emoji" aria-hidden="true">🎲</span></h1>
             </div>
             <div id="instructions-container">
                 <h2>HOW TO PLAY:</h2>
                     <ol>
-                        <li>Choose an opponent to play against and press the START button.</li>
-                        <li>Sort the dice in ascending numerical order faster than your opponent.</li>
-                        <li>Toggle between 6 and 9 dice while on the game screen for extra fun!</li>
+                        <li>Pick your opponent, then hit START.</li>
+                        <li>Put your dice in order, lowest to highest, before your opponent finishes.</li>
+                        <li>Drag a die with your mouse or finger. Or focus a die and move it with the left and right arrow keys, with Home and End sending it to either end.</li>
+                        <li>Prefer not to drag? Press Enter on a die to pick it up, then Enter on another to place it there. Escape puts it back.</li>
+                        <li>Hit DONE to lock in your order. Switch between 6 and 9 dice any time.</li>
                     </ol>
             </div>
-            <div id="difficulty-buttons">
-                <div class="difficulty-button" data-speed="easy">
-                    <img src="src/assets/images/difficulty_easy.png" alt="Cartoon illustration of a young boy with black hair sitting at a computer, looking cheerful and engaged.">
-                    <div class="difficulty-text">
-                        <p>EASY</p>
-                        <p>Play Against Blake</p>
-                    </div>
-                </div>
-                <div class="difficulty-button" data-speed="medium">
-                    <img src="src/assets/images/difficulty_medium.png" alt="Cartoon illustration of a woman with long black hair sitting at a computer, looking intently at the screen with a determined expression.">
-                    <div class="difficulty-text">
-                        <p>MEDIUM</p>
-                        <p>Play Against Star</p>
-                    </div>
-                </div>
-                <div class="difficulty-button" data-speed="hard">
-                    <img src="src/assets/images/difficulty_hard.png" alt="Cartoon illustration of an older man with white hair and a stern expression sitting at a computer, appearing focused and serious.">
-                    <div class="difficulty-text">
-                        <p>HARD</p>
-                        <p>Play Against Logan</p>
-                    </div>
-                </div>
-            </div>
-            <button id="start-button">START</button>
-        </div>
+            <fieldset id="difficulty-buttons">
+                <legend class="visually-hidden">Choose your opponent</legend>
+                <label class="difficulty-button">
+                    <input class="difficulty-input" type="radio" name="opponent" value="easy">
+                    <img src="src/assets/images/difficulty_easy.png" alt="">
+                    <span class="difficulty-text">
+                        <span class="difficulty-level">EASY</span>
+                        <span class="difficulty-opponent">Play Against Blake</span>
+                    </span>
+                </label>
+                <label class="difficulty-button">
+                    <input class="difficulty-input" type="radio" name="opponent" value="medium" checked>
+                    <img src="src/assets/images/difficulty_medium.png" alt="">
+                    <span class="difficulty-text">
+                        <span class="difficulty-level">MEDIUM</span>
+                        <span class="difficulty-opponent">Play Against Star</span>
+                    </span>
+                </label>
+                <label class="difficulty-button">
+                    <input class="difficulty-input" type="radio" name="opponent" value="hard">
+                    <img src="src/assets/images/difficulty_hard.png" alt="">
+                    <span class="difficulty-text">
+                        <span class="difficulty-level">HARD</span>
+                        <span class="difficulty-opponent">Play Against Logan</span>
+                    </span>
+                </label>
+            </fieldset>
+            <button id="start-button" type="button">START</button>
+        </section>
     </div>
 
-    <div id="game-content" style="display: none;">
+    <section id="game-content" hidden>
         <div class="navbtns-container">
-            <button id="toggle-dice-button" class="toggle-dice-button">6 DICE VERSION</button>
-            <button id="instructions-button" class="instructions-button">INSTRUCTIONS</button>
+            <button id="toggle-dice-button" class="toggle-dice-button" type="button">6 DICE VERSION</button>
+            <button id="instructions-button" class="instructions-button" type="button">INSTRUCTIONS</button>
         </div>
         <div class="title-container">
-            <h1 class="title-text"><span class="emoji">🎲</span> SORT SHOWDOWN <span class="emoji">🎲</span></h1>
+            <h1 class="title-text"><span class="emoji" aria-hidden="true">🎲</span> SORT SHOWDOWN <span class="emoji" aria-hidden="true">🎲</span></h1>
         </div>
+
+        <div id="round-result" class="round-result" hidden>
+            <h2 class="round-result-title" id="round-result-title" tabindex="-1"></h2>
+            <div class="round-result-actions">
+                <button id="play-again-button" class="result-button" type="button">PLAY AGAIN</button>
+                <button id="change-opponent-button" class="result-button" type="button">CHANGE OPPONENT</button>
+            </div>
+        </div>
+
+        <p class="dice-hint" id="dice-hint">Drag a die, or focus one and move it with the left and right arrow keys. Home and End send it to either end. Or press Enter to pick up a die, then Enter on another to place it there.</p>
+
         <div id="container">
             <div class="side" id="side1">
-                <h2>SORT THESE DICE</h2>
-                <div id="dice-container1" class="dice-container"></div>
-                <button id="submit-button" class="sort-button">DONE</button>
+                <h2 id="player-heading" tabindex="-1">SORT THESE DICE</h2>
+                <ul id="dice-container1" class="dice-container" role="list" aria-label="Your dice"></ul>
+                <p id="submit-feedback" class="submit-feedback" role="alert"></p>
+                <button id="submit-button" class="sort-button" type="button">DONE</button>
             </div>
             <div class="side" id="side2">
                 <h2 id="computer-sorting-text">COMPUTER SORTING...</h2>
-                <div id="dice-container2" class="dice-container"></div>
+                <ul id="dice-container2" class="dice-container" role="list" aria-label="Opponent's dice"></ul>
             </div>
         </div>
-    </div>
+
+        <p id="game-status" class="visually-hidden" role="status"></p>
+    </section>
+    </main>
     </div>
     <script src="src/scripts/dice.js"></script>
 </body>
