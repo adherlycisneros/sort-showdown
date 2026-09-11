@@ -153,11 +153,8 @@ body {
      decoded — this is what shows, so the intro is never a bare dark
      rectangle. The video covers it completely once it plays.
 
-     This is not autoplay detection: nothing measures whether playback
-     succeeded, and the video surface is never hidden or replaced. That
-     remains Stage 4. (The path is relative to this stylesheet, so it resolves
-     both locally and under the deployed repository path; the game screen's
-     absolute one above is a known Stage 4 item.) */
+     The URL is relative to this stylesheet, so it resolves both locally and
+     under a deployed project sub-path. */
   background-image: url("../assets/images/retro-background.jpg");
   background-size: cover;
   background-position: center;
@@ -221,9 +218,7 @@ img {
 
 .screen--game {
   /* Opaque in its own right, so the intro's video can never show through the
-     gameplay screen even if the artwork above it fails to load. The URL is
-     relative to this stylesheet, so it resolves from the domain root and from
-     a project sub-path alike. */
+     gameplay screen even if the artwork above it fails to load. */
   background-color: var(--bg-deep);
   background-image: url("../assets/images/retro-background.jpg");
   background-size: cover;

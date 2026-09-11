@@ -6,19 +6,16 @@
          screen pads itself back out with env(safe-area-inset-*). -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Sort Showdown</title>
+    <meta name="description" content="Race an opponent to sort dice into ascending order in this responsive retro browser game built with vanilla JavaScript.">
 
-    <!-- Favicon links -->
-    <!-- All relative, so they resolve whether the site is served from the
-         domain root or from a project sub-path. -->
-    <!-- The PNG icons cover every current browser, and declaring them stops the
-         automatic /favicon.ico request that would 404 under a project path. The
-         15 KB .ico in the package is deliberately not linked. -->
+    <!-- Icons, all relative so they resolve whether the site is served from a
+         domain root or a project sub-path. Declaring the PNGs also stops the
+         browser falling back to an automatic /favicon.ico request. -->
     <link rel="icon" type="image/png" sizes="32x32" href="src/assets/favicon-package/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="src/assets/favicon-package/favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="src/assets/favicon-package/apple-touch-icon.png">
     <link rel="mask-icon" href="src/assets/favicon-package/safari-pinned-tab.svg" color="#00ffcc">
     <link rel="manifest" href="src/assets/favicon-package/site.webmanifest">
-    <meta name="msapplication-TileColor" content="#0b0518">
     <!-- Matches the page background, so iOS browser chrome does not sit a white
          band against the synthwave art. -->
     <meta name="theme-color" content="#0b0518">
@@ -57,7 +54,8 @@
          decides whether to load it at all, and the surface stays unpainted
          until playback is actually running. Nothing is downloaded when motion
          is unwanted, and there is no video box for Safari to draw a play
-         control on when it declines to start one. -->
+         control on when it declines to start one, as it does in Low Power
+         Mode. -->
     <div class="video-background" aria-hidden="true">
         <video id="video" muted loop playsinline webkit-playsinline preload="none" tabindex="-1"
                data-src="src/assets/videos/retro-background.mp4"></video>

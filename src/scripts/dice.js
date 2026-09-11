@@ -42,13 +42,22 @@
 // chord and no drag-and-drop ARIA. Real pointer input is excluded from that path
 // (a genuine click reports detail >= 1), so mouse and touch dragging are untouched.
 
-// Original quicksort algorithm
+// The game's own quicksort. It decides the target order a round is scored
+// against; the opponent then walks the board towards that order one die per
+// tick rather than animating the recursion itself.
+//
+// Three-way partition. An earlier version kept only the values strictly less
+// than and strictly greater than the pivot, which silently dropped every other
+// copy of a duplicate: [4, 2, 4, 1] came back as [1, 2, 4]. The dealt sets are
+// all distinct so the game never hit it, but a sorting routine that loses
+// elements is not one worth showing.
 const quickSort = (arr) => {
     if (arr.length <= 1) return arr;
     const pivot = arr[Math.floor(arr.length / 2)];
-    const leftArr = arr.filter(item => item < pivot);
-    const rightArr = arr.filter(item => item > pivot);
-    return [...quickSort(leftArr), pivot, ...quickSort(rightArr)];
+    const less = arr.filter(item => item < pivot);
+    const equal = arr.filter(item => item === pivot);
+    const greater = arr.filter(item => item > pivot);
+    return [...quickSort(less), ...equal, ...quickSort(greater)];
 };
 
 // The dice values dealt in each mode. The 6-dice mode deliberately skips 4.
