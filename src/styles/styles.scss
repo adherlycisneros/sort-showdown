@@ -166,16 +166,24 @@ body {
        remains Stage 4. (The path is relative to this stylesheet, so it resolves
        both locally and under the deployed repository path; the game screen's
        absolute one above is a known Stage 4 item.) */
-    background-image: url('../assets/images/retro-background.png');
+    background-image: url('../assets/images/retro-background.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 
+    /* Unpainted until dice.js has seen a `playing` event. If playback never
+       starts — refused autoplay, Low Power Mode, a decode failure, reduced
+       motion — there is no video box on screen at all, so Safari has nothing
+       to draw a play control over and the still frame above simply stays. */
     video {
-        display: block;
+        display: none;
         width: 100%;
         height: 100%;
         object-fit: cover;
+    }
+
+    &.is-playing video {
+        display: block;
     }
 }
 
@@ -228,9 +236,11 @@ img {
 
 .screen--game {
     /* Opaque in its own right, so the intro's video can never show through the
-       gameplay screen even if the artwork above it fails to load. */
+       gameplay screen even if the artwork above it fails to load. The URL is
+       relative to this stylesheet, so it resolves from the domain root and from
+       a project sub-path alike. */
     background-color: var(--bg-deep);
-    background-image: url('/sort-showdown/src/assets/images/retro-background.png');
+    background-image: url('../assets/images/retro-background.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -1452,7 +1462,6 @@ button.die {
        so dice.js pauses it on a frame instead. */
 }
 
-/* FONT IMPORT */
-
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Play:wght@700&display=swap');
+/* Fonts are requested from a <link> in the document head rather than an
+   @import here: an @import is only discovered once this stylesheet has been
+   downloaded and parsed, which serialises the two requests. */

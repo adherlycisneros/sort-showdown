@@ -105,29 +105,59 @@ const backgroundVideo = document.getElementById('video');
 // Live: the player can change the system setting without reloading.
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-// Reduced motion should cost the backdrop its movement, not its existence, so
-// the video is held on a frame rather than hidden. Hiding it left the intro as
-// a flat rectangle of page colour.
+// --- decorative backdrop ----------------------------------------------------
 //
-// This is not the Low Power Mode fallback: nothing here detects or reacts to
-// autoplay being refused, which stays Stage 4 work. A rejected play() is
-// swallowed so it cannot surface as an unhandled rejection.
-function applyMotionPreferenceToBackground() {
-    if (!backgroundVideo) return;
-    if (prefersReducedMotion.matches) {
-        backgroundVideo.pause();
-    } else {
-        const started = backgroundVideo.play();
-        if (started) started.catch(() => {});
+// The backdrop has two states and one rule: the still synthwave frame is a CSS
+// background that is always there, and the video is painted over it only while
+// it is genuinely playing. `.is-playing` is added on the `playing` event and
+// removed whenever playback stops for any reason, so every way this can fail —
+// autoplay refused (Low Power Mode), a decode or network error, reduced motion,
+// a tab suspending the media — lands on the same still frame with no video box
+// on screen. There is nothing for Safari to draw a play control over, which is
+// what a poster attribute and CSS control-suppression both failed to achieve.
+//
+// Capability, not identity: nothing here asks which browser or device this is.
+const backdrop = document.querySelector('.video-background');
+
+function showBackdropVideo() {
+    if (backdrop) backdrop.classList.add('is-playing');
+}
+
+function hideBackdropVideo() {
+    if (backdrop) backdrop.classList.remove('is-playing');
+}
+
+// Only reached when motion is wanted. The src is attached on first use, so a
+// player who never sees motion never downloads the video at all.
+function playBackdropVideo() {
+    if (!backgroundVideo || prefersReducedMotion.matches) return;
+    if (!backgroundVideo.getAttribute('src')) {
+        backgroundVideo.setAttribute('src', backgroundVideo.dataset.src);
     }
+    const started = backgroundVideo.play();
+    // A refusal is an expected outcome, not an error: the `playing` event
+    // simply never fires and the still frame stays.
+    if (started) started.catch(hideBackdropVideo);
+}
+
+function pauseBackdropVideo() {
+    if (backgroundVideo && !backgroundVideo.paused) backgroundVideo.pause();
 }
 
 if (backgroundVideo) {
-    // Pausing before a frame is decoded would leave nothing painted, so wait
-    // for one if it has not arrived yet.
-    if (backgroundVideo.readyState >= 2) applyMotionPreferenceToBackground();
-    backgroundVideo.addEventListener('loadeddata', applyMotionPreferenceToBackground);
-    prefersReducedMotion.addEventListener('change', applyMotionPreferenceToBackground);
+    backgroundVideo.addEventListener('playing', showBackdropVideo);
+    // Covers a pause we asked for, a stall, and the case where play() resolves
+    // and the browser then stops the video anyway.
+    backgroundVideo.addEventListener('pause', hideBackdropVideo);
+    backgroundVideo.addEventListener('error', hideBackdropVideo);
+    backgroundVideo.addEventListener('emptied', hideBackdropVideo);
+
+    prefersReducedMotion.addEventListener('change', () => {
+        if (prefersReducedMotion.matches) pauseBackdropVideo();
+        else playBackdropVideo();
+    });
+
+    playBackdropVideo();
 }
 
 // Every die element the game itself created. SortableJS clones the dragged die
@@ -640,6 +670,9 @@ function checkedOpponentInput() {
 function startGame() {
     initialContent.hidden = true;
     gameContent.hidden = false;
+    // The gameplay screen is opaque, so decoding frames behind it is wasted
+    // work and battery.
+    pauseBackdropVideo();
     startRound(DEFAULT_DICE_COUNT);
     playerHeading.focus();
 }
@@ -651,6 +684,9 @@ function showInstructions(focusTarget) {
     teardownRound();
     gameContent.hidden = true;
     initialContent.hidden = false;
+    // Back on the intro: try again. If it will not start, the still frame is
+    // already what is showing.
+    playBackdropVideo();
     (focusTarget || instructionsTitle).focus();
 }
 

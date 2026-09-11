@@ -8,19 +8,41 @@
     <title>Sort Showdown</title>
 
     <!-- Favicon links -->
-    <link rel="apple-touch-icon" sizes="180x180" href="src/assets/favicon-package/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="src//assets/favicon-package/favicon-32x32.png">
+    <!-- All relative, so they resolve whether the site is served from the
+         domain root or from a project sub-path. -->
+    <!-- The PNG icons cover every current browser, and declaring them stops the
+         automatic /favicon.ico request that would 404 under a project path. The
+         15 KB .ico in the package is deliberately not linked. -->
+    <link rel="icon" type="image/png" sizes="32x32" href="src/assets/favicon-package/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="src/assets/favicon-package/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="src/assets/favicon-package/apple-touch-icon.png">
+    <link rel="mask-icon" href="src/assets/favicon-package/safari-pinned-tab.svg" color="#00ffcc">
     <link rel="manifest" href="src/assets/favicon-package/site.webmanifest">
-    <link rel="mask-icon" href="src/assets/favicone-package/safari-pinned-tab.svg" color="#5bbad5">
-    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="msapplication-TileColor" content="#0b0518">
     <!-- Matches the page background, so iOS browser chrome does not sit a white
          band against the synthwave art. -->
     <meta name="theme-color" content="#0b0518">
 
-    <!-- Stylesheet and script -->
+    <!-- Both families in one request, discovered in the head rather than
+         through an @import the browser can only find after the stylesheet has
+         downloaded and parsed. gstatic serves the font files themselves, so
+         both origins are worth a preconnect. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Play:wght@700&amp;family=Press+Start+2P&amp;display=swap">
+
     <link rel="stylesheet" href="src/styles/styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.7/Sortable.min.js"
+
+    <!-- The one image the first screen cannot do without: it is the intro
+         backdrop and the gameplay background, and as a CSS background it would
+         otherwise only be discovered after the stylesheet has parsed. Measured
+         on a throttled link, that left the intro on flat page colour for over a
+         second. Nothing else here is preloaded. -->
+    <link rel="preload" as="image" fetchpriority="high" href="src/assets/images/retro-background.jpg">
+
+    <!-- Deferred, so neither script blocks the first paint. Deferred scripts
+         run in document order, so SortableJS is always ready before dice.js. -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.7/Sortable.min.js"
             integrity="sha512-ri8dokds012Oxz+iFzMs4KNJXVc+h7J1zq6unM1NTtzBLj4jD1R5BWiK6QycK0TdSdkt7zYcIcv6sUPhmYkbdQ=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
@@ -29,14 +51,16 @@
     <!-- A fixed backdrop layer rather than a wrapper around the content: nothing
          in the page then sits inside an `overflow: hidden` ancestor, which is what
          `position: sticky` needs to work for the DONE action on small screens.
-         playsinline lets iOS Safari play this decorative video inline rather than
-         taking it fullscreen. Note it does not stop Safari painting a play control
-         when it declines to autoplay at all, as in Low Power Mode; that fallback
-         is Stage 4 work. -->
+         The still frame behind the video is a CSS background on this element.
+
+         The video deliberately starts with no src and no autoplay: dice.js
+         decides whether to load it at all, and the surface stays unpainted
+         until playback is actually running. Nothing is downloaded when motion
+         is unwanted, and there is no video box for Safari to draw a play
+         control on when it declines to start one. -->
     <div class="video-background" aria-hidden="true">
-        <video autoplay muted loop playsinline webkit-playsinline id="video" tabindex="-1">
-            <source src="src/assets/videos/retro-background.mp4" type="video/mp4">
-        </video>
+        <video id="video" muted loop playsinline webkit-playsinline preload="none" tabindex="-1"
+               data-src="src/assets/videos/retro-background.mp4"></video>
     </div>
 
     <main>
@@ -173,6 +197,6 @@
         </section>
     </main>
 
-    <script src="src/scripts/dice.js"></script>
+    <script defer src="src/scripts/dice.js"></script>
 </body>
 </html>
