@@ -57,12 +57,18 @@ const DICE_SETS = {
     6: [1, 2, 3, 5, 6, 7],
 };
 
-// Opponent name and per-die sorting delay for each difficulty.
+// Opponent identity and per-die sorting delay for each difficulty. Difficulty
+// changes speed and nothing else.
 const OPPONENTS = {
-    easy: { name: 'BLAKE', dieDelayMs: 1500 },
-    medium: { name: 'STAR', dieDelayMs: 800 },
-    hard: { name: 'LOGAN', dieDelayMs: 400 },
+    easy: { name: 'BLAKE', level: 'EASY', dieDelayMs: 2400, portrait: 'src/assets/images/difficulty_easy.png' },
+    medium: { name: 'STAR', level: 'MEDIUM', dieDelayMs: 1450, portrait: 'src/assets/images/difficulty_medium.png' },
+    hard: { name: 'LOGAN', level: 'HARD', dieDelayMs: 900, portrait: 'src/assets/images/difficulty_hard.png' },
 };
+
+// A flat pause before the opponent's first die, independent of dice count, so
+// the ladder is the per-die delay and nothing else. It also covers the dice
+// entrance animation.
+const OPPONENT_START_DELAY_MS = 1200;
 
 const DEFAULT_DIFFICULTY = 'medium';
 const DEFAULT_DICE_COUNT = 9;
@@ -78,17 +84,51 @@ const instructionsTitle = document.getElementById('instructions-title');
 const playerHeading = document.getElementById('player-heading');
 const playerDice = document.getElementById('dice-container1');
 const opponentDice = document.getElementById('dice-container2');
-const opponentHeading = document.getElementById('computer-sorting-text');
+const opponentProgress = document.getElementById('opponent-progress');
+const opponentProgressText = document.getElementById('opponent-progress-text');
+const matchPortrait = document.getElementById('match-portrait');
+const matchName = document.getElementById('match-name');
+const matchLevel = document.getElementById('match-level');
 const submitFeedback = document.getElementById('submit-feedback');
 const gameStatus = document.getElementById('game-status');
 const roundResult = document.getElementById('round-result');
 const roundResultTitle = document.getElementById('round-result-title');
+const roundResultDetail = document.getElementById('round-result-detail');
 const startButton = document.getElementById('start-button');
 const submitButton = document.getElementById('submit-button');
 const instructionsButton = document.getElementById('instructions-button');
 const toggleDiceButton = document.getElementById('toggle-dice-button');
 const playAgainButton = document.getElementById('play-again-button');
 const changeOpponentButton = document.getElementById('change-opponent-button');
+const backgroundVideo = document.getElementById('video');
+
+// Live: the player can change the system setting without reloading.
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+// Reduced motion should cost the backdrop its movement, not its existence, so
+// the video is held on a frame rather than hidden. Hiding it left the intro as
+// a flat rectangle of page colour.
+//
+// This is not the Low Power Mode fallback: nothing here detects or reacts to
+// autoplay being refused, which stays Stage 4 work. A rejected play() is
+// swallowed so it cannot surface as an unhandled rejection.
+function applyMotionPreferenceToBackground() {
+    if (!backgroundVideo) return;
+    if (prefersReducedMotion.matches) {
+        backgroundVideo.pause();
+    } else {
+        const started = backgroundVideo.play();
+        if (started) started.catch(() => {});
+    }
+}
+
+if (backgroundVideo) {
+    // Pausing before a frame is decoded would leave nothing painted, so wait
+    // for one if it has not arrived yet.
+    if (backgroundVideo.readyState >= 2) applyMotionPreferenceToBackground();
+    backgroundVideo.addEventListener('loadeddata', applyMotionPreferenceToBackground);
+    prefersReducedMotion.addEventListener('change', applyMotionPreferenceToBackground);
+}
 
 // Every die element the game itself created. SortableJS clones the dragged die
 // while a touch drag is in flight, and that clone carries the same class and
@@ -104,6 +144,7 @@ const round = {
     opponent: DEFAULT_DIFFICULTY, // locked in when the round starts
     correctOrder: [],
     outcome: null,               // 'player' | 'opponent' once the round is decided
+    opponentTickAt: 0,           // performance.now() of the opponent's last placement
     grabbedDie: null,            // die picked up via activation, awaiting a place
     sortable: null,
     timeoutIds: new Set(),
@@ -153,7 +194,12 @@ function createSortable() {
 
     return Sortable.create(playerDice, {
         animation: 150,
+        // All three are named explicitly, defaults included, because the
+        // stylesheet dresses each one: the slot the die will land in, the die
+        // the pointer has grabbed, and the clone that follows a finger.
         ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
         touchStartThreshold: 4, // For better touch performance on mobile
         onStart: () => {
             hadFocus = playerDice.contains(document.activeElement);
@@ -190,7 +236,10 @@ function createDie(number, id, interactive) {
     // The face is the die: it holds the artwork and, when playable, it is the
     // native control the player operates.
     const face = document.createElement(interactive ? 'button' : 'span');
-    face.className = 'die initial-load';
+    face.className = 'die';
+    // Inline, so the relative path resolves against the document. (A custom
+    // property would not: a relative url() inside one is resolved against the
+    // stylesheet that consumes it.)
     face.style.backgroundImage = `url('src/assets/images/dice-${number}.png')`;
 
     // A real text node, not an ARIA label, so the element has content of its own.
@@ -212,9 +261,14 @@ function createDie(number, id, interactive) {
     slot.appendChild(face);
     const die = slot;
 
-    // Drop the entrance-animation class when the animation itself ends, so the
-    // cleanup cannot outlive the die or bleed into a later round.
-    face.addEventListener('animationend', () => face.classList.remove('initial-load'), { once: true });
+    // The entrance animation is decoration, so it is simply never started when
+    // the player has asked for reduced motion. The class is dropped when the
+    // animation itself ends, so the cleanup cannot outlive the die or bleed
+    // into a later round.
+    if (!prefersReducedMotion.matches) {
+        face.classList.add('initial-load');
+        face.addEventListener('animationend', () => face.classList.remove('initial-load'), { once: true });
+    }
     playableDice.add(die);
     return die;
 }
@@ -271,14 +325,47 @@ function clearSubmitFeedback() {
     submitFeedback.replaceChildren();
 }
 
+// Visible progress only: <progress> is not a live region and the text sits in
+// plain markup, so the opponent placing a die never interrupts a screen reader.
+// The element's own value is the count, so there is no second tally to keep.
+function setOpponentProgress(placed) {
+    opponentProgress.value = placed;
+    opponentProgressText.textContent = `SORTING ${placed} / ${opponentProgress.max}`;
+}
+
 function announce(message) {
     const line = document.createElement('span');
     line.textContent = message;
     gameStatus.replaceChildren(line);
 }
 
+// How much the opponent had left to do, derived from where it actually got to:
+// the dice it has still to place, less however much of the current interval has
+// already gone. No extra timer and no schedule to keep in sync — the count on
+// screen is the same number this reads.
+//
+// If the next placement is already overdue the interval is not running to time
+// (a hidden page has its timers throttled, or suspended outright, while
+// performance.now() keeps going), so none of the current interval is counted.
+// That keeps the margin honest instead of quietly shrinking towards zero.
+function raceMargin(outcome) {
+    const opponentName = OPPONENTS[round.opponent].name;
+    if (outcome === 'opponent') return `${opponentName} finished first.`;
+
+    const dieDelayMs = OPPONENTS[round.opponent].dieDelayMs;
+    const diceLeft = opponentProgress.max - opponentProgress.value;
+    const sinceLastPlacement = performance.now() - round.opponentTickAt;
+    const intervalSoFar = sinceLastPlacement < dieDelayMs ? sinceLastPlacement : 0;
+    const secondsToSpare = (diceLeft * dieDelayMs - intervalSoFar) / 1000;
+
+    if (secondsToSpare < 0.1) return `A photo finish against ${opponentName}.`;
+    return `You beat ${opponentName} by ${secondsToSpare.toFixed(1)}s.`;
+}
+
 function showRoundResult(outcome) {
     roundResultTitle.textContent = RESULT_MESSAGES[outcome];
+    roundResultDetail.textContent = raceMargin(outcome);
+    gameContent.dataset.outcome = outcome;
     roundResult.hidden = false;
     roundResultTitle.focus();
 }
@@ -286,6 +373,8 @@ function showRoundResult(outcome) {
 function hideRoundResult() {
     roundResult.hidden = true;
     roundResultTitle.textContent = '';
+    roundResultDetail.textContent = '';
+    delete gameContent.dataset.outcome;
 }
 
 // --- round lifecycle --------------------------------------------------------
@@ -310,6 +399,7 @@ function teardownRound() {
     round.id += 1;
     round.status = 'idle';
     round.outcome = null;
+    round.opponentTickAt = 0;
     // The dice themselves are about to be discarded, so drop the reference rather
     // than reaching back into them.
     round.grabbedDie = null;
@@ -330,6 +420,7 @@ function startRound(diceCount) {
     round.diceCount = diceCount;
     round.opponent = selectedDifficulty();
 
+    const opponent = OPPONENTS[round.opponent];
     const numbers = DICE_SETS[diceCount];
     round.correctOrder = quickSort([...numbers]);
     const shuffledNumbers = shuffle([...numbers]);
@@ -339,13 +430,26 @@ function startRound(diceCount) {
     refreshPlayerDiceLabels();
     round.sortable = createSortable();
 
-    const opponentName = OPPONENTS[round.opponent].name;
-    opponentHeading.textContent = `${opponentName} SORTING...`;
-    toggleDiceButton.textContent = `${diceCount === 9 ? 6 : 9} DICE VERSION`;
-    announce(`New round. ${diceCount} dice against ${opponentName}.`);
+    matchPortrait.src = opponent.portrait;
+    matchName.textContent = opponent.name;
+    matchLevel.textContent = opponent.level;
 
-    // Let the dice finish dropping in before the opponent starts sorting.
-    scheduleRoundTimeout(startOpponentSort, shuffledNumbers.length * 100 + 500);
+    opponentProgress.max = diceCount;
+    opponentProgress.value = 0;
+    opponentProgressText.textContent = 'GET READY';
+
+    // The visible label names the mode the button switches to; the accessible
+    // name says so outright, so nobody has to guess which one it means.
+    const otherCount = diceCount === 9 ? 6 : 9;
+    toggleDiceButton.textContent = `${otherCount} DICE`;
+    toggleDiceButton.setAttribute('aria-label', `Switch to ${otherCount} dice`);
+
+    announce(`New round. ${diceCount} dice against ${opponent.name}.`);
+
+    // Stand in for a placement at the moment the first one is due, so the margin
+    // reads correctly during the opening pause too.
+    round.opponentTickAt = performance.now() + OPPONENT_START_DELAY_MS;
+    scheduleRoundTimeout(startOpponentSort, OPPONENT_START_DELAY_MS);
 }
 
 function finishRound(outcome) {
@@ -353,25 +457,34 @@ function finishRound(outcome) {
     stopRoundTimers();
     round.status = 'over';
     round.outcome = outcome;
+    // However the round ended, the opponent's tally is now final rather than
+    // still "sorting".
+    opponentProgressText.textContent = `SORTED ${opponentProgress.value} / ${opponentProgress.max}`;
     lockBoard();
     clearSubmitFeedback();
     showRoundResult(outcome);
 }
 
-// Moves the opponent's dice into sorted order, one die per tick.
+// Moves the opponent's dice into sorted order, one die per tick. The round ends
+// on the tick that places the last die, so the board is never visibly finished
+// for an interval before the result appears.
 function startOpponentSort() {
     const sortedNumbers = round.correctOrder;
     let index = 0;
 
+    setOpponentProgress(0);
+
+    const dieDelayMs = OPPONENTS[round.opponent].dieDelayMs;
+
     startRoundInterval(() => {
-        if (index >= sortedNumbers.length) {
-            finishRound('opponent');
-            return;
-        }
         const die = opponentDice.querySelector(`.die-slot[data-number='${sortedNumbers[index]}']`);
         if (die) opponentDice.appendChild(die);
         index += 1;
-    }, OPPONENTS[round.opponent].dieDelayMs);
+        setOpponentProgress(index);
+        round.opponentTickAt = performance.now();
+
+        if (index >= sortedNumbers.length) finishRound('opponent');
+    }, dieDelayMs);
 }
 
 // --- player actions ---------------------------------------------------------

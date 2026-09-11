@@ -1,48 +1,195 @@
-/* styles.scss */
+/* styles.scss — Sort Showdown
+   ============================================================================
+   Mobile-first. Three content-driven breakpoints (600px, 1024px) plus one
+   short-viewport/landscape treatment, and no device-specific patches.
 
-html, body {        
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    height: auto;
-    min-height: 100%;
+   Sizing is driven by custom properties rather than per-breakpoint overrides:
+   `--die-size` and `--board-cols` are declared once per breakpoint and every
+   board measurement falls out of them, so a die can never overflow its panel
+   and the boards keep the same shape at every width.
+   ========================================================================= */
+
+:root {
+    /* --- type scale -------------------------------------------------------
+       A small clamp() scale. Nothing here is a raw viewport unit, so text
+       stays readable at every width instead of collapsing on small screens. */
+    --fs-hero: clamp(2rem, 7vw, 4.5rem);            /* 32 – 72px */
+    --fs-heading: clamp(1.125rem, 2.2vw, 1.75rem);  /* 18 – 28px */
+    --fs-body: clamp(1rem, 1.3vw, 1.125rem);        /* 16 – 18px */
+    --fs-label: clamp(0.875rem, 1.1vw, 1rem);       /* 14 – 16px */
+    --fs-btn: clamp(0.875rem, 1.3vw, 1.125rem);     /* 14 – 18px */
+    /* Press Start 2P is wide and loses legibility quickly, so secondary
+       controls stop at 14px rather than shrinking with the viewport. */
+    --fs-btn-sm: clamp(0.75rem, 1vw, 0.875rem);     /* 12 – 14px */
+
+    --font-display: 'Press Start 2P', 'Courier New', monospace;
+    --font-body: 'Play', 'Trebuchet MS', 'Segoe UI', sans-serif;
+    --font-emoji: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+
+    /* --- palette ---------------------------------------------------------- */
+    --neon: #00ffcc;
+    --neon-soft: rgba(0, 255, 204, 0.35);
+    --neon-faint: rgba(0, 255, 204, 0.18);
+    --magenta: #ff3d9a;
+    --amber: #ffd166;
+    --paper: #fff;
+    --ink: #000;
+    --bg-deep: #0b0518;
+    --panel-bg: rgba(9, 4, 24, 0.72);
+    /* The match bar and the pinned action can land right on top of the bright
+       part of the sunset, so they carry a heavier plate to keep their text
+       above 4.5:1 there. */
+    --plate-bg: rgba(6, 3, 18, 0.88);
+    --panel-border: rgba(0, 255, 204, 0.28);
+    --panel-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+    --orange-from: #ff6512;
+    --orange-to: #e03e00;
+    --orange-hi-from: #ff9c64;
+    --orange-hi-to: #ff6512;
+
+    /* --- spacing ---------------------------------------------------------- */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 3rem;
+
+    --radius: 14px;
+    --radius-sm: 8px;
+    --content-max: 1400px;
+
+    /* --- safe areas ------------------------------------------------------- */
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-r: env(safe-area-inset-right, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-l: env(safe-area-inset-left, 0px);
+    --gutter: var(--space-3);
+    --gutter-block: var(--space-3);
+
+    /* --- board -----------------------------------------------------------
+       A die is whichever is smaller: a share of the width, or the height left
+       over once everything that is not a die has been paid for.
+
+       `--board-chrome` is that fixed cost — toolbar, match bar, panel padding,
+       headings, the DONE action and every gap between them. `--board-die-rows`
+       is how many die-heights the composition stacks: three player rows plus
+       two opponent rows at 62% is 4.24 here. Subtracting a constant rather than
+       taking a flat percentage of the viewport is what matters, because the
+       chrome does not shrink with the screen — a flat `vh` coefficient fits one
+       phone and overflows the next.
+
+       Each breakpoint below re-states only these four numbers; the formula and
+       everything measured from it stay put. */
+    --board-cols: 3;
+    --die-max: 92px;
+    --die-width-share: 21.5vw;
+    --board-chrome: 450px;
+    --board-die-rows: 3;
+    --die-size: clamp(46px, min(var(--die-width-share), (100vh - var(--board-chrome)) / var(--board-die-rows)), var(--die-max));
+    --die-gap: var(--space-2);
+    /* On a phone the opponent's board is a status read-out, not a second thing
+       to study: one compact row of nine, sized in its own right rather than as
+       a fraction of the player's die, so the progress bar and the strip
+       together cost about a third of what a wrapped grid did. */
+    --die-size-opp: clamp(26px, 7.5vw, 34px);
+    --die-gap-opp: var(--space-1);
 }
 
-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative; /* Added to position the buttons absolutely within the body */
-    min-height: 100vh; /* Ensure body takes full height */
-    margin: 0;
-}
-
-.video-background {
-    position: relative;
-    width: 100%;
-    min-height: 100vh; 
-    overflow: hidden;
-
-
-    video {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        min-width: 100%;
-        min-height: 100%;
-        width: auto;
-        height: auto;
-        z-index: -1;
-        transform: translate(-50%, -50%);
-        background-size: cover;
+/* dvh tracks the browser chrome as it collapses; the vh above is the fallback. */
+@supports (height: 100dvh) {
+    :root {
+        --die-size: clamp(46px, min(var(--die-width-share), (100dvh - var(--board-chrome)) / var(--board-die-rows)), var(--die-max));
     }
 }
 
-/* Screens are shown and hidden with the `hidden` attribute. The id selectors on
-   the screens themselves out-specify the browser default, so restate it here. */
-#initial-content[hidden],
-#game-content[hidden] {
-    display: none;
+/* The opponent's board is laid out explicitly at every width rather than being
+   left to wrap: one row here, mirroring the player's three columns from 768px,
+   and a single row again once the player's own board is one row. */
+.screen--game {
+    --board-cols-opp: 9;
+}
+
+/* --- base ---------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    /* Both carry the colour so neither an iOS safe area nor a rubber-band
+       overscroll can expose white behind the artwork. */
+    background-color: var(--bg-deep);
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    color: var(--paper);
+    font-family: var(--font-body);
+    font-size: var(--fs-body);
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Three flat layers, in painting order, all positioned so the order is stated
+   rather than inferred:
+     html/body background  — the colour behind everything, including the iOS
+                             safe areas and a rubber-band overscroll
+     .video-background (0) — the still synthwave frame, with the video over it
+     main (1)              — every screen
+
+   A fixed backdrop rather than a wrapper also keeps `overflow: hidden` off
+   every ancestor of the content, which is what lets the DONE action use
+   `position: sticky`. The video is sized with object-fit rather than an
+   oversized child pulled back by a transform: same cover behaviour, but nothing
+   depends on the parent clipping an element larger than itself. */
+.video-background {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    /* The same scene as a still, sitting under the video. Whenever the video
+       cannot paint — it is still downloading, the connection is slow, autoplay
+       was refused, or reduced motion has it held on frame zero before one has
+       decoded — this is what shows, so the intro is never a bare dark
+       rectangle. The video covers it completely once it plays.
+
+       This is not autoplay detection: nothing measures whether playback
+       succeeded, and the video surface is never hidden or replaced. That
+       remains Stage 4. (The path is relative to this stylesheet, so it resolves
+       both locally and under the deployed repository path; the game screen's
+       absolute one above is a known Stage 4 item.) */
+    background-image: url('../assets/images/retro-background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    video {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+main {
+    position: relative;
+    z-index: 1;
+}
+
+img {
+    max-width: 100%;
+}
+
+.emoji {
+    font-family: var(--font-emoji);
 }
 
 /* Available to assistive technology, not painted. */
@@ -58,366 +205,814 @@ body {
     border: 0;
 }
 
-#initial-content {
+/* --- screens ------------------------------------------------------------- */
+
+.screen {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding-bottom: 20px;
-
-    .title-text {
-        margin: 2vw auto;
-    }
-
-    #instructions-container {
-        background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
-        padding: 0 5vw;
-        border-radius: 10px;
-        max-width: 85%;
-        margin: 20px auto;
-        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
-
-        h2 {
-            color: #ffffff;
-            font-size: 2.5vw;
-            text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.8);
-        }
-
-        ol {
-            color: #ffffff;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-            padding-left: 20px;
-            margin: 0;
-        } 
-
-        li {
-            margin-bottom: 10px;
-            font-family: 'Play', cursive;
-        }
-    }
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-block:
+        calc(var(--gutter-block) + var(--safe-t))
+        calc(var(--gutter-block) + var(--safe-b));
+    padding-inline:
+        calc(var(--gutter) + var(--safe-l))
+        calc(var(--gutter) + var(--safe-r));
 }
 
-.content {
-    position: relative;
-    z-index: 1; /* Ensure content is above the video */
-    display: flex;
-    justify-content: center;
-    flex-grow: 1;
+/* Screens are shown and hidden with the `hidden` attribute; restate it so the
+   class selector above cannot win. */
+.screen[hidden] {
+    display: none;
 }
 
-#game-content {
+.screen--game {
+    /* Opaque in its own right, so the intro's video can never show through the
+       gameplay screen even if the artwork above it fails to load. */
+    background-color: var(--bg-deep);
     background-image: url('/sort-showdown/src/assets/images/retro-background.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    width: 100%;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    gap: var(--space-3);
+}
+
+/* --- shared controls ----------------------------------------------------- */
+
+.btn {
+    display: inline-flex;
     align-items: center;
-    padding-bottom: 20px;
-
-    .title-text {
-        margin-top: 0;
-    }
-}
-
-h2, p {
-    color: #fff;
-    text-align: center;
-    margin-bottom: 20px;
-    font-family: 'Play', cursive;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-}
-
-
-.title-container {
-
-    .title-text {
-        text-align: center;
-        color: #00ffcc; 
-        font-size: 7vw;
-        font-family: 'Play', cursive;
-        text-shadow: 8px 8px 16px #000;
-        -webkit-text-stroke: 2px #000;
-        margin-bottom: 0;
-    
-        .emoji {
-            font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif; /* Use system emoji fonts for emojis */
-        }
-    }
-}
-
-#container {
-    display: flex;
-    justify-content: space-around;
-    width: 100%;
-    max-width: 800px;
-    margin-top: 20px;
-
-    .side {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin: 10px;
-        border-radius: 20px;
-        background: rgba(0, 0, 0, 0.5);
-    }
-
-    .dice-container {
-        list-style: none;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 5px;
-        margin: 10px;
-        padding: 10px;
-        border-radius: 10px;
-    }
-
-    .die-slot {
-        display: flex;
-        margin: 10px;
-    }
-
-    .die {
-        display: block;
-        position: relative;
-        width: 80px;
-        height: 80px;
-        padding: 0;
-        background-color: transparent;
-        background-size: cover;
-        text-align: center;
-        line-height: 80px;
-        font-size: 24px;
-        border: 1px solid #ccc;
-        border-radius: 10px;
-        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.6);
-        cursor: pointer;
-        touch-action: none; /* Prevent default touch behaviors */
-        -webkit-touch-callout: none;
-        -webkit-user-select: none; /* Prevent selection on long press */
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-
-        &.initial-load {
-            animation: fall 1s ease-in-out forwards;
-        }
-    }
-
-    /* The playable face is a real <button>, so strip only the UA chrome that
-       would fight the dice artwork. Buttons default to border-box, which would
-       make a playable die 2px smaller than an opponent's. */
-    button.die {
-        box-sizing: content-box;
-        appearance: none;
-        font: inherit;
-        color: inherit;
-    }
-
-    #dice-container1 .die:enabled:hover {
-        transform: scale(1.05);
-    }
-
-    button.die:disabled {
-        cursor: default;
-    }
-
-    /* A picked-up die needs to be visible, not only announced. Dashed keeps it
-       distinct from the solid focus ring rather than relying on colour alone. */
-    #dice-container1 .die.is-grabbed {
-        outline: 3px dashed #00ffcc;
-        outline-offset: 3px;
-        transform: translateY(-6px);
-    }
-
-    #dice-container2 .die:hover {
-        cursor: default;
-    }
-}
-
-#start-button, #submit-button, .instructions-button, .toggle-dice-button, .result-button {
-    font-family: 'Press Start 2P', cursive;
-    font-weight: bold;
+    justify-content: center;
     min-height: 44px;
-    color: #000;
-    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-    background: linear-gradient(180deg, #ff6512, #e03e00);
-    border: 2px solid #000;
-    border-radius: 5px;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-weight: bold;
+    line-height: 1.4;
+    text-align: center;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s;
-
-    &:hover {
-        background: linear-gradient(180deg, #ff9c64, #ff6512);
-        transform: scale(1.05);
-    }
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 
     &:disabled {
         cursor: not-allowed;
-        opacity: 0.55;
+        opacity: 0.5;
         transform: none;
     }
 }
 
-#start-button {
-    padding: 15px 30px;
-    font-size: 2vw;
-    margin-top: 40px;
-}
+/* START, DONE and PLAY AGAIN: the actions that advance the game. */
+.btn--primary {
+    color: var(--ink);
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+    background: linear-gradient(180deg, var(--orange-from), var(--orange-to));
+    border: 2px solid var(--ink);
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.55), 0 8px 18px rgba(0, 0, 0, 0.4);
+    font-size: var(--fs-btn);
 
-#submit-button {
-    padding: 15px 30px;
-    font-size: 2vw;
-    margin-bottom: 10px;
-}
-
-.navbtns-container {
-    display: flex;  
-    justify-content: space-between;
-    width: 100%;
-    margin-top: 10px;
-}
-
-.instructions-button, .toggle-dice-button {
-    padding: 10px 20px;
-    font-size: 1vw;
-
-    &.instructions-button {
-        margin-right: 10px;
+    @media (hover: hover) {
+        &:hover:not(:disabled) {
+            background: linear-gradient(180deg, var(--orange-hi-from), var(--orange-hi-to));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.55), 0 12px 22px rgba(0, 0, 0, 0.45);
+        }
     }
 
-    &.toggle-dice-button {
-        margin-left: 10px;
+    &:active:not(:disabled) {
+        transform: translateY(2px);
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
     }
 }
 
+.btn--start {
+    padding: var(--space-4) var(--space-7);
+}
 
-#difficulty-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 3vw;
-    border: 0;
-    margin: 0;
-    padding: 0;
-    min-width: 0;
+/* MENU, the dice toggle and CHANGE OPPONENT: navigation and configuration,
+   deliberately quieter than the game actions but still full-size targets. */
+.btn--ghost {
+    padding: var(--space-2) var(--space-3);
+    color: var(--neon);
+    background: rgba(4, 2, 12, 0.6);
+    border: 2px solid var(--neon-soft);
+    box-shadow: none;
+    font-size: var(--fs-btn-sm);
+    letter-spacing: 0.02em;
 
-    /* Each card is the label for its radio, so the native control carries the
-       selected state and the keyboard behaviour. */
-    .difficulty-button {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        cursor: pointer;
-        /* Reserved so selecting a card cannot nudge the row. */
-        border: 2px solid transparent;
-        border-radius: 10px;
-        padding: 10px;
-        transition: background-color 0.3s, box-shadow 0.3s;
-
-        .difficulty-input {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            margin: 0;
-            opacity: 0;
-            pointer-events: none;
+    @media (hover: hover) {
+        &:hover:not(:disabled) {
+            color: var(--ink);
+            background: var(--neon);
+            border-color: var(--neon);
         }
+    }
 
-        .difficulty-text {
-            display: block;
-            background-color: rgba(255, 68, 0, 0.418);
-            border-radius: 5px;
-            padding: 5px 15px;
-            color: #fff;
-            text-align: center;
-            font-family: 'Play', cursive;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-        }
-
-        .difficulty-level,
-        .difficulty-opponent {
-            display: block;
-            font-size: 2vw;
-        }
-
-        img {
-            width: 15vw;
-            height: 15vw;
-            padding: 10px 20px 0px 20px;
-        }
-
-        &:has(.difficulty-input:focus) {
-            outline: 3px solid #00ffcc;
-            outline-offset: 3px;
-        }
-
-        &:has(.difficulty-input:checked) {
-            border-color: #fff;
-            background-color: #1a1d1c98;
-        }
-
-        &:hover {
-            transform: scale(1.05);
-        }
+    &:active:not(:disabled) {
+        transform: translateY(1px);
     }
 }
 
-/* --- round result and submission feedback ------------------------------- */
+/* --- intro screen -------------------------------------------------------- */
 
-.round-result {
+.intro {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
-    max-width: min(90%, 640px);
-    margin: 20px 10px 0;
-    padding: 20px 25px;
-    text-align: center;
-    border: 3px solid #00ffcc;
-    border-radius: 12px;
-    background: rgba(0, 0, 0, 0.85);
-    box-shadow: 0 0 25px rgba(0, 255, 204, 0.35);
+    gap: var(--space-4);
+    width: 100%;
+    max-width: var(--content-max);
+    /* auto margins centre the block vertically without the clipping that
+       justify-content: center causes once the content outgrows the screen. */
+    margin: auto;
 }
 
-.round-result[hidden] {
-    display: none;
-}
-
-.round-result-title {
+.title-text {
     margin: 0;
-    color: #00ffcc;
-    font-family: 'Press Start 2P', cursive;
-    font-size: clamp(0.95rem, 2.2vw, 1.6rem);
-    line-height: 1.5;
-    text-shadow: 3px 3px 0 #000;
+    color: var(--neon);
+    font-family: var(--font-body);
+    font-size: var(--fs-hero);
+    line-height: 1.1;
+    text-align: center;
+    text-wrap: balance;
+    text-shadow: 0 0 18px rgba(0, 255, 204, 0.45), 6px 6px 12px #000;
+    -webkit-text-stroke: 2px var(--ink);
 }
 
-.round-result-actions {
+/* Narrow enough on a phone to break into two balanced lines rather than three
+   ragged ones, and wide enough from 600px up (see that breakpoint) to sit on a
+   single line. `balance` evens the two lines; it is a progressive nicety, and
+   the measure does the real work. */
+.intro-premise {
+    max-inline-size: 32ch;
+    margin: 0;
+    font-size: var(--fs-body);
+    text-align: center;
+    text-wrap: balance;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.85);
+}
+
+.opponent-picker {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.opponent-picker-legend {
+    display: block;
+    width: 100%;
+    padding: 0;
+    margin-bottom: var(--space-3);
+    color: var(--neon);
+    font-family: var(--font-display);
+    font-size: var(--fs-btn-sm);
+    letter-spacing: 0.06em;
+    text-align: center;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.opponent-cards {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 12px;
+    justify-content: safe center;
+    align-items: stretch;
+    gap: var(--space-2);
 }
 
-.result-button {
-    padding: 12px 20px;
-    font-size: clamp(0.6rem, 1.1vw, 0.85rem);
+/* Each card is the label for its radio, so the native control keeps the
+   selected state, the click target and the arrow-key group behaviour. */
+.difficulty-button {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    max-width: 15rem;
+    padding: var(--space-2);
+    /* Reserved, so selecting a card cannot nudge the row. */
+    border: 3px solid transparent;
+    border-radius: var(--radius);
+    background: rgba(4, 2, 12, 0.5);
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+
+    .difficulty-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    @media (hover: hover) {
+        &:hover {
+            border-color: var(--neon-faint);
+            transform: translateY(-3px);
+        }
+    }
+
+    /* More than a thin border: neon rim, glow, brightened portrait and a check
+       badge, so the choice is unmistakable without relying on colour alone. */
+    &:has(.difficulty-input:checked) {
+        border-color: var(--neon);
+        background: rgba(0, 40, 34, 0.72);
+        box-shadow: 0 0 22px rgba(0, 255, 204, 0.45), inset 0 0 18px rgba(0, 255, 204, 0.16);
+
+        .difficulty-check {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .difficulty-portrait img {
+            filter: none;
+        }
+
+        .difficulty-opponent {
+            color: var(--neon);
+        }
+    }
+
+    &:has(.difficulty-input:focus-visible) {
+        outline: 3px solid var(--paper);
+        outline-offset: 3px;
+    }
 }
 
-/* Space and padding are always reserved, so showing the message cannot shift the
-   board. The plate only appears with the message, and keeps the text legible
-   wherever the translucent panel happens to sit. */
+.difficulty-portrait {
+    position: relative;
+    display: block;
+    width: 100%;
+
+    img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: var(--radius-sm);
+        /* Unselected opponents sit back a little; the selected one comes
+           forward. */
+        filter: saturate(0.55) brightness(0.75);
+        transition: filter 0.2s ease;
+    }
+}
+
+.difficulty-check {
+    position: absolute;
+    top: var(--space-1);
+    right: var(--space-1);
+    display: grid;
+    place-items: center;
+    width: 1.6em;
+    height: 1.6em;
+    color: var(--ink);
+    background: var(--neon);
+    border-radius: 50%;
+    font-size: var(--fs-label);
+    font-weight: bold;
+    line-height: 1;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.difficulty-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    text-align: center;
+}
+
+.difficulty-opponent {
+    color: var(--paper);
+    font-family: var(--font-display);
+    font-size: var(--fs-btn-sm);
+    text-shadow: 2px 2px 0 #000;
+    transition: color 0.2s ease;
+}
+
+.difficulty-level {
+    max-width: 100%;
+    padding: 0.2em 0.7em;
+    color: var(--paper);
+    background: rgba(255, 68, 0, 0.55);
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: var(--fs-label);
+    font-weight: bold;
+    letter-spacing: 0.05em;
+}
+
+/* A relative tempo, never an exact completion time — the race should not feel
+   like a stopwatch. */
+.difficulty-tempo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3em 0.4em;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: var(--fs-label);
+}
+
+.speed-pips {
+    display: inline-flex;
+    gap: 3px;
+
+    i {
+        display: block;
+        width: 6px;
+        height: 12px;
+        border: 1px solid var(--neon-soft);
+        border-radius: 2px;
+    }
+
+    /* Filled vs outlined pips, so speed reads without depending on colour. */
+    &--1 i:nth-child(-n + 1),
+    &--2 i:nth-child(-n + 2),
+    &--3 i:nth-child(-n + 3) {
+        background: var(--neon);
+        border-color: var(--neon);
+    }
+}
+
+/* Detail lives behind a native disclosure so it cannot dominate the screen.
+   The same information is also stated in an always-present visually hidden
+   paragraph, so nothing depends on this being open. */
+.how-to-play {
+    width: 100%;
+    max-width: 46rem;
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    background: var(--panel-bg);
+
+    /* The native marker cannot be spaced or centred consistently across
+       engines, so it is replaced by one drawn here. The element stays a real
+       <summary>, so the semantics and keyboard behaviour are untouched. */
+    summary {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        min-height: 44px;
+        padding: var(--space-2) var(--space-4);
+        color: var(--neon);
+        font-family: var(--font-display);
+        font-size: var(--fs-btn-sm);
+        letter-spacing: 0.05em;
+        line-height: 1.2;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    /* A fixed-size box holding a triangle, so the label sits at the same place
+       open or closed and the text never shifts. */
+    summary::before {
+        content: '';
+        flex: 0 0 auto;
+        width: 0;
+        height: 0;
+        border-top: 0.34em solid transparent;
+        border-bottom: 0.34em solid transparent;
+        border-left: 0.5em solid currentColor;
+        transform-origin: 0.2em 50%;
+        transition: transform 0.2s ease;
+    }
+
+    &[open] > summary::before {
+        transform: rotate(90deg);
+    }
+
+    ol {
+        margin: 0;
+        padding: 0 var(--space-5) var(--space-4) calc(var(--space-5) + 1.2em);
+        font-size: var(--fs-label);
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    }
+
+    li + li {
+        margin-top: var(--space-2);
+    }
+}
+
+/* --- game screen: toolbar ------------------------------------------------ */
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    width: 100%;
+    max-width: var(--content-max);
+    margin-inline: auto;
+}
+
+/* Below 360px the words are dropped and the die alone carries the brand, which
+   reads better than "SORT SHOWDO…". The text stays in the accessibility tree at
+   every width, so the heading keeps its full name. */
+.wordmark-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.wordmark {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--neon);
+    font-family: var(--font-body);
+    /* Steeper than the shared label scale on purpose: the words shrink a little
+       between 360px and 430px so they survive intact next to the nav controls,
+       rather than being cut to "SORT SHOWDO...". */
+    font-size: clamp(0.75rem, 3.2vw, 1rem);
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-shadow: 0 0 10px rgba(0, 255, 204, 0.5), 2px 2px 3px #000;
+
+    /* Every current phone is wider than this, so the full wordmark is what
+       anyone will actually see. */
+    @media (min-width: 360px) {
+        .wordmark-text {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 0;
+            overflow: visible;
+            clip-path: none;
+        }
+    }
+}
+
+.toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    gap: var(--space-2);
+}
+
+/* --- game screen: match identity ----------------------------------------- */
+
+.match-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    justify-content: safe center;
+    gap: var(--space-3);
+    width: max-content;
+    max-width: 100%;
+    margin-inline: auto;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--panel-border);
+    border-radius: 999px;
+    background: var(--plate-bg);
+}
+
+.match-side {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-display);
+    font-size: var(--fs-btn-sm);
+}
+
+.match-side--you {
+    color: var(--neon);
+    text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+}
+
+.match-vs {
+    color: var(--amber);
+    font-family: var(--font-display);
+    font-size: var(--fs-btn-sm);
+    text-shadow: 0 0 10px rgba(255, 209, 102, 0.5);
+}
+
+.match-portrait {
+    width: 2.2em;
+    height: 2.2em;
+    object-fit: cover;
+    border: 2px solid var(--magenta);
+    border-radius: 50%;
+}
+
+.match-name {
+    color: var(--magenta);
+    text-shadow: 0 0 10px rgba(255, 61, 154, 0.5);
+}
+
+.match-level {
+    padding: 0.25em 0.6em;
+    color: var(--paper);
+    background: rgba(255, 68, 0, 0.55);
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: var(--fs-label);
+    font-weight: bold;
+    letter-spacing: 0.05em;
+}
+
+/* --- game screen: board -------------------------------------------------- */
+
+.board {
+    display: grid;
+    grid-template-areas: 'opponent' 'player';
+    gap: var(--space-3);
+    /* Sized by its content and centred in whatever is left, rather than
+       stretched, which on a tall screen left the panels mostly empty. */
+    flex: 0 1 auto;
+    width: 100%;
+    max-width: var(--content-max);
+    margin: auto;
+    min-height: 0;
+}
+
+.panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    background: var(--panel-bg);
+    box-shadow: var(--panel-shadow), inset 0 0 40px rgba(0, 255, 204, 0.05);
+}
+
+.panel--opponent {
+    grid-area: opponent;
+}
+
+.panel--player {
+    grid-area: player;
+    /* The interactive surface, so it gets the stronger frame and the space. */
+    border-color: var(--neon-soft);
+    box-shadow: var(--panel-shadow), 0 0 24px rgba(0, 255, 204, 0.12), inset 0 0 40px rgba(0, 255, 204, 0.07);
+}
+
+.panel-heading {
+    margin: 0;
+    color: var(--paper);
+    font-family: var(--font-display);
+    font-size: var(--fs-btn-sm);
+    letter-spacing: 0.05em;
+    text-align: center;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.dice-hint {
+    max-width: 46ch;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: var(--fs-label);
+    text-align: center;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.85);
+}
+
+/* --- game screen: opponent status ---------------------------------------- */
+
+.opponent-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    width: 100%;
+    max-width: 22rem;
+}
+
+.opponent-progress-text {
+    margin: 0;
+    color: var(--neon);
+    font-family: var(--font-display);
+    font-size: var(--fs-btn-sm);
+    letter-spacing: 0.04em;
+    text-align: center;
+    text-shadow: 2px 2px 0 #000;
+}
+
+/* A native <progress>: no ARIA needed, and it is not a live region, so the
+   opponent placing a die never interrupts a screen reader. */
+.opponent-progress {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    height: 10px;
+    border: 1px solid var(--panel-border);
+    border-radius: 999px;
+    background-color: rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+
+    &::-webkit-progress-bar {
+        background-color: transparent;
+    }
+
+    &::-webkit-progress-value {
+        background: linear-gradient(90deg, var(--neon), var(--magenta));
+    }
+
+    &::-moz-progress-bar {
+        background: linear-gradient(90deg, var(--neon), var(--magenta));
+    }
+}
+
+/* --- game screen: dice --------------------------------------------------- */
+
+.dice-container {
+    /* Never wider than `--board-cols` dice, and `--fit` shrinks a die when the
+       panel is narrower than that, so dice cannot overflow or re-wrap oddly. */
+    --fit: calc((100% - (var(--board-cols) - 1) * var(--slot-gap)) / var(--board-cols));
+
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    justify-content: safe center;
+    gap: var(--slot-gap);
+    width: 100%;
+    max-width: calc(var(--board-cols) * var(--slot-size) + (var(--board-cols) - 1) * var(--slot-gap));
+    margin: 0 auto;
+    padding: 0;
+    list-style: none;
+}
+
+.dice-container--player {
+    --slot-size: var(--die-size);
+    --slot-gap: var(--die-gap);
+    margin-block: auto;
+}
+
+.dice-container--opponent {
+    --board-cols: var(--board-cols-opp);
+    --slot-size: var(--die-size-opp);
+    --slot-gap: var(--die-gap-opp);
+    margin-block: auto;
+}
+
+.die-slot {
+    display: flex;
+    width: min(var(--slot-size), var(--fit));
+}
+
+.die {
+    display: block;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    height: auto;
+    padding: 0;
+    background-color: transparent;
+    background-size: cover;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.55);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+
+    &.initial-load {
+        animation: fall 1s ease-in-out forwards;
+    }
+}
+
+/* The playable face is a real <button>, so strip the UA chrome that would
+   fight the dice artwork. */
+button.die {
+    appearance: none;
+    -webkit-appearance: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    /* Only the player's dice claim the gesture; the opponent's must not block
+       the page from scrolling under a finger. */
+    touch-action: none;
+    transition: transform 0.15s ease, filter 0.2s ease, box-shadow 0.15s ease;
+
+    @media (hover: hover) {
+        &:enabled:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 22px rgba(0, 0, 0, 0.6);
+        }
+    }
+
+    /* End of round: the board is locked, and it should look it. */
+    &:disabled {
+        cursor: default;
+        filter: grayscale(0.5) brightness(0.72);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* A picked-up die needs to be visible, not only announced: dashed where focus
+   is solid, lifted, and glowing. A grabbed die is almost always the focused one
+   too, so the :focus-visible variant is spelled out to out-specify the focus
+   ring rather than depending on which rule happens to come last. */
+.dice-container--player .die.is-grabbed,
+.dice-container--player .die.is-grabbed:focus-visible {
+    outline: 3px dashed var(--neon);
+    outline-offset: 3px;
+    transform: translateY(-8px) scale(1.04);
+    box-shadow: 0 20px 26px rgba(0, 0, 0, 0.6), 0 0 26px rgba(0, 255, 204, 0.55);
+}
+
+/* --- drag feedback -------------------------------------------------------
+   Three distinct states, so it is obvious which die is moving, where it will
+   land, and that a drop has happened:
+     .sortable-chosen — the die the pointer or finger has grabbed
+     .sortable-ghost  — the slot the die will drop into
+     .sortable-drag   — the clone that follows a finger in fallback mode      */
+
+.dice-container--player .die-slot.sortable-chosen button.die {
+    filter: brightness(1.12);
+    box-shadow: 0 18px 24px rgba(0, 0, 0, 0.6), 0 0 22px rgba(0, 255, 204, 0.4);
+}
+
+.die-slot.sortable-ghost {
+    opacity: 1;
+}
+
+/* The slot the die will drop into. The artwork is knocked out by an inset
+   shadow laid over it rather than by overriding the inline background-image,
+   which would need !important to win. */
+.dice-container--player .die-slot.sortable-ghost button.die {
+    border: 2px dashed var(--neon);
+    box-shadow:
+        inset 0 0 0 999px rgba(4, 26, 24, 0.88),
+        0 0 16px rgba(0, 255, 204, 0.5);
+    transform: none;
+}
+
+/* The die under the pointer while it travels. On the mouse path Sortable puts
+   this class on the dragged element itself, which already carries
+   .sortable-chosen, so the first selector exists purely to out-specify the
+   chosen rule above; the second catches the fallback clone, which Sortable
+   parents outside the container. */
+.dice-container--player .die-slot.sortable-drag button.die,
+.die-slot.sortable-drag button.die {
+    transform: scale(1.06);
+    box-shadow: 0 24px 34px rgba(0, 0, 0, 0.65), 0 0 30px rgba(0, 255, 204, 0.5);
+}
+
+/* The entrance animation is `forwards`, so if a die is grabbed while it is
+   still falling the clone restarts it and then pins itself at the final
+   keyframe, which overrides the drag lift above for the rest of the drag.
+   Dropping the animation the moment a die is picked up ends that, and settles
+   the die onto its real slot as it is grabbed. */
+.die-slot.sortable-chosen .die.initial-load,
+.die-slot.sortable-ghost .die.initial-load,
+.die-slot.sortable-drag .die.initial-load {
+    animation: none;
+}
+
+/* --- game screen: player actions ----------------------------------------- */
+
+/* Sticky rather than fixed: it sits in the panel until the board would push it
+   off screen, then pins to the bottom without ever covering content it is not
+   overlapping anyway. */
+.player-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding-top: var(--space-2);
+    padding-bottom: max(var(--space-1), var(--safe-b));
+    background: linear-gradient(to top, rgba(6, 3, 18, 0.88) 60%, rgba(6, 3, 18, 0));
+    border-radius: var(--radius-sm);
+}
+
+/* Space and padding are always reserved, so showing the message cannot shift
+   the board. The plate only appears with the message, and keeps the text
+   legible wherever the translucent panel happens to sit. */
 .submit-feedback {
-    min-height: 1.5em;
-    margin: 0 10px 8px;
-    padding: 6px 12px;
-    border-radius: 6px;
-    color: #ffd166;
-    font-family: 'Press Start 2P', cursive;
-    font-size: clamp(0.6rem, 1.2vw, 0.9rem);
-    line-height: 1.5;
+    min-height: 1.6em;
+    margin: 0;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-sm);
+    color: var(--amber);
+    font-family: var(--font-display);
+    font-size: var(--fs-btn-sm);
+    line-height: 1.6;
+    text-align: center;
     text-shadow: 2px 2px 0 #000;
 }
 
@@ -425,39 +1020,108 @@ h2, p {
     background: rgba(0, 0, 0, 0.8);
 }
 
-.dice-hint {
-    max-width: 90%;
-    margin: 10px 15px 0;
-    font-size: clamp(0.7rem, 1.1vw, 0.9rem);
+/* --- round result --------------------------------------------------------
+   Painted over the player's own panel, so the finished board stays visible and
+   nothing on the page moves when the round ends. Not a modal: focus goes to
+   the heading, the controls behind it are disabled rather than trapped. */
+
+.round-result {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: grid;
+    place-items: center;
+    padding: var(--space-2);
+    border-radius: inherit;
+    background: rgba(4, 2, 12, 0.82);
 }
 
-/* --- focus states --------------------------------------------------------- */
+.round-result[hidden] {
+    display: none;
+}
 
-/* A bright ring plus a dark halo, so the indicator reads over both the neon sky
-   and the dark grid. outline-offset keeps it clear of the control without
-   affecting layout. */
-#start-button:focus-visible,
-#submit-button:focus-visible,
-.instructions-button:focus-visible,
-.toggle-dice-button:focus-visible,
-.result-button:focus-visible {
-    outline: 3px solid #00ffcc;
+/* Deliberately not full-bleed: the finished board stays readable around it. */
+.round-result-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    max-width: 28rem;
+    padding: var(--space-3);
+    border: 3px solid var(--neon);
+    border-radius: var(--radius);
+    background: rgba(0, 0, 0, 0.9);
+    box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
+    text-align: center;
+    scroll-margin: var(--space-5);
+}
+
+.round-result-title {
+    margin: 0;
+    color: var(--neon);
+    font-family: var(--font-display);
+    font-size: var(--fs-btn);
+    line-height: 1.5;
+    text-shadow: 3px 3px 0 #000;
+}
+
+.round-result-detail {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: var(--fs-label);
+}
+
+.round-result-detail:empty {
+    display: none;
+}
+
+.round-result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    justify-content: safe center;
+    gap: var(--space-2);
+}
+
+/* Win and loss read differently without either relying on colour alone — the
+   headline text already says which it is. */
+.screen--game[data-outcome='opponent'] {
+    .round-result-card {
+        border-color: var(--magenta);
+        box-shadow: 0 0 30px rgba(255, 61, 154, 0.4);
+    }
+
+    .round-result-title {
+        color: var(--magenta);
+    }
+}
+
+/* --- focus states --------------------------------------------------------
+   A bright ring plus a dark halo, so the indicator reads over both the neon
+   sky and the dark grid. */
+
+.btn:focus-visible,
+.how-to-play summary:focus-visible {
+    outline: 3px solid var(--neon);
     outline-offset: 3px;
     box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.85);
 }
 
+.btn--ghost:focus-visible {
+    outline-color: var(--paper);
+}
+
 /* Headings only take focus programmatically, so they get a ring without a halo. */
 .title-text:focus-visible,
-#player-heading:focus-visible,
+.panel-heading:focus-visible,
 .round-result-title:focus-visible {
-    outline: 3px solid #00ffcc;
+    outline: 3px solid var(--neon);
     outline-offset: 6px;
 }
 
-/* The ring sits on the button, which covers the die exactly, so the die keeps
-   its own drop shadow untouched. */
-#container #dice-container1 .die:focus-visible {
-    outline: 3px solid #00ffcc;
+.dice-container--player .die:focus-visible {
+    outline: 3px solid var(--neon);
     outline-offset: 3px;
     box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.85);
 }
@@ -477,79 +1141,318 @@ h2, p {
     }
 }
 
-/* Media Queries for Mobile and Smaller Screens */
+/* --- 600px and up: room for larger cards and a roomier board ------------- */
 
-@media (min-width: 769px) {
-    #instructions-container li {
-       line-height: 1.5;  
-       font-size: 1.8vw;      
+@media (min-width: 600px) {
+    :root {
+        --gutter: var(--space-5);
+        --die-gap: var(--space-3);
+        --die-gap-opp: var(--space-2);
+        /* Roomier side gutters; the opponent is still one compact row. */
+        --board-chrome: 500px;
     }
 
-    #difficulty-buttons {
-        gap: 5vw;
+    .screen--game {
+        gap: var(--space-4);
+    }
 
-        .difficulty-button img {
-            width: 20vw;
-            height: 20vw;
-        }
+    .intro {
+        gap: var(--space-5);
+    }
+
+    .opponent-cards {
+        gap: var(--space-4);
+    }
+
+    .btn--ghost {
+        padding: var(--space-2) var(--space-4);
+    }
+
+    /* Room for the sentence on one line now, so the phone measure is lifted. */
+    .intro-premise {
+        max-inline-size: 64ch;
+    }
+
+    .difficulty-button {
+        padding: var(--space-3);
+    }
+
+    .panel {
+        padding: var(--space-4);
+        gap: var(--space-3);
+    }
+
+    .board {
+        gap: var(--space-4);
     }
 }
 
-@media (max-width: 768px) {
+/* --- 768px and up: the boards mirror each other -------------------------
+   At tablet width there is room to show the opponent's board in the same shape
+   as the player's, at the 62% of its size that reads as "smaller, but the same
+   game". Stacked, that costs three more die-rows of height. */
 
-    #container {
-        flex-direction: column;
+@media (min-width: 768px) {
+    :root {
+        --board-chrome: 520px;
+        --board-die-rows: 4.86;
+        --die-size-opp: calc(var(--die-size) * 0.62);
+        --die-gap-opp: var(--space-2);
+    }
+
+    .screen--game {
+        --board-cols-opp: var(--board-cols);
+    }
+}
+
+/* --- wider than tall: the race runs side by side ------------------------
+   Stacked, the composition needs about five die-heights; side by side it needs
+   three, because the opponent's board sits beside the player's rather than
+   above it. Below 768px the two panels are too narrow to sit together without
+   cramping, so the stacked composition is kept instead. */
+
+@media (min-width: 768px) and (min-aspect-ratio: 1 / 1) {
+    :root {
+        --die-width-share: 14vw;
+        --board-chrome: 432px;
+        --board-die-rows: 3;
+    }
+
+    .board {
+        grid-template-areas: 'player opponent';
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    }
+}
+
+/* --- 1024px and up: two columns whatever the shape of the window --------- */
+
+@media (min-width: 1024px) {
+    :root {
+        --die-width-share: 14vw;
+        --board-chrome: 432px;
+        --board-die-rows: 3;
+    }
+
+    .board {
+        /* The player's board is the interactive surface, so it takes the space. */
+        grid-template-areas: 'player opponent';
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+        /* The match bar is the header for these panels, so it sits directly
+           above them. Centring the board in the leftover height (the
+           `margin: auto` this overrides) split that slack evenly above and
+           below, which on a 1080px display left 327px of nothing between the
+           two. A fixed offset keeps the pair together and lets the remaining
+           height fall below, where the grid horizon reads as composition. */
+        margin-block: var(--space-4) auto;
+    }
+
+    .match-bar {
+        gap: var(--space-5);
+        padding: var(--space-3) var(--space-5);
+    }
+
+    .wordmark {
+        font-size: var(--fs-heading);
+    }
+
+    .panel-heading {
+        font-size: var(--fs-btn);
+    }
+
+    .difficulty-button {
+        padding: var(--space-4);
+    }
+}
+
+/* --- 1280px and up: all nine dice in a single row ------------------------
+   The clearest possible reading of "ascending order", but only once the player
+   panel is wide enough to hold nine dice at a comfortable size. Below this, the
+   three-column board with far larger dice is the better picture. */
+
+@media (min-width: 1280px) {
+    :root {
+        --board-cols: 9;
+        --die-max: 80px;
+        --die-width-share: 5vw;
+        /* One row of dice, so height is never what binds here. */
+        --board-chrome: 340px;
+        --board-die-rows: 1;
+        --die-gap: var(--space-2);
+        --die-gap-opp: var(--space-1);
+    }
+}
+
+/* --- short viewports: landscape phones ----------------------------------
+   Its own composition rather than a squeezed portrait one: the race runs
+   side-by-side and the dice are sized from the height that is actually left. */
+
+@media (max-height: 520px) and (min-aspect-ratio: 1 / 1) {
+    :root {
+        --gutter: var(--space-2);
+        --gutter-block: var(--space-2);
+        --board-cols: 3;
+        --die-max: 78px;
+        --die-width-share: 14vw;
+        /* The opponent has its own narrow column here, so a single row of nine
+           would be unreadably small; mirror the player's three instead. */
+        --die-size-opp: calc(var(--die-size) * 0.62);
+        --die-gap-opp: var(--space-1);
+        /* Branding, match and nav share one row and the hint is unpainted, so
+           far less of the screen is spoken for. */
+        --board-chrome: 220px;
+        --board-die-rows: 3;
+        --die-gap: var(--space-1);
+        --die-gap-opp: var(--space-1);
+        /* The hero cannot take a quarter of the screen when there are only a
+           few hundred pixels of it. */
+        --fs-hero: clamp(1.5rem, 4.5vw, 2.25rem);
+    }
+
+    .screen--game {
+        --board-cols-opp: var(--board-cols);
+    }
+
+    .screen {
+        gap: var(--space-2);
+    }
+
+    /* --- intro, compressed ---------------------------------------------- */
+
+    .intro {
+        gap: var(--space-2);
+    }
+
+    /* Cards shrink to their portrait rather than filling the row, so START
+       still lands on screen. */
+    .difficulty-button {
+        flex: 0 0 auto;
+        max-width: none;
+        padding: var(--space-1);
+    }
+
+    .difficulty-portrait img {
+        width: auto;
+        height: min(24dvh, 7rem);
+    }
+
+    .opponent-picker-legend {
+        margin-bottom: var(--space-1);
+    }
+
+    .btn--start {
+        padding: var(--space-2) var(--space-5);
+    }
+
+    .how-to-play summary {
+        padding: var(--space-2) var(--space-3);
+    }
+
+    /* Branding, the match and the nav controls share one slim row, which is
+       the ~45px that lets the whole race fit between the notches. */
+    .screen--game {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-rows: auto minmax(0, 1fr);
+        grid-template-areas:
+            'brand match actions'
+            'board board board';
+    }
+
+    .toolbar {
+        display: contents;
+    }
+
+    .wordmark {
+        grid-area: brand;
+        align-self: center;
+    }
+
+    .toolbar-actions {
+        grid-area: actions;
+        align-self: center;
+    }
+
+    .match-bar {
+        grid-area: match;
+    }
+
+    .board {
+        grid-area: board;
+        grid-template-areas: 'player opponent';
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+        gap: var(--space-2);
         align-items: center;
     }
 
-    .side {
-        width: 100%;
-        margin: 10px 0;
+    .panel {
+        padding: var(--space-2);
+        gap: var(--space-1);
     }
 
-    .instructions-button, .toggle-dice-button {
-        position: relative;
-        top: auto;
-        right: auto;
-        left: auto;
-        margin-bottom: 20px;
-        width: auto;
-    } 
+    .match-bar {
+        padding: var(--space-1) var(--space-3);
+    }
 
-    #instructions-container li {
-        font-size: 2.1vw;
+    /* Every die points at this with aria-describedby, so it is hidden the way
+       .visually-hidden hides things — out of sight, still in the accessibility
+       tree — rather than with display: none. */
+    .dice-hint {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .player-actions {
+        padding-top: var(--space-1);
     }
 }
 
-@media (max-width: 767.98px) {
-    #submit-button, #start-button {
-        font-size: 3vw;
-        padding: 10px 25px;
+/* --- reduced motion ------------------------------------------------------
+   Decoration and flourish go; every state change stays legible because each
+   one also changes colour, outline or position, never motion alone. */
+
+@media (prefers-reduced-motion: reduce) {
+    .die.initial-load {
+        animation: none;
     }
 
-    .instructions-button, .toggle-dice-button {
-        font-size: 2.5vw;
-        padding: 10px 10px;
+    .btn,
+    .difficulty-button,
+    .difficulty-check,
+    .difficulty-portrait img,
+    .difficulty-opponent,
+    button.die {
+        transition: none;
     }
 
-    #dice-container2 {
-        padding: 0px 8vw !important;
-        gap: 0px !important;
-        margin: 0px !important;
-
-        .die-slot {
-            margin: 5px;
-        }
-
-        .die {
-            height: 40px;
-            width: 40px;
-        }
+    .btn--primary:hover:not(:disabled),
+    .btn--primary:active:not(:disabled),
+    .btn--ghost:active:not(:disabled),
+    .difficulty-button:hover,
+    button.die:enabled:hover {
+        transform: none;
     }
+
+    .die-slot.sortable-drag button.die {
+        transform: none;
+    }
+
+    .dice-container--player .die.is-grabbed,
+    .dice-container--player .die.is-grabbed:focus-visible {
+        transform: none;
+    }
+
+    /* The video is NOT hidden here. Hiding it leaves the intro as a flat
+       rectangle of page colour; the motion is what has to go, not the artwork,
+       so dice.js pauses it on a frame instead. */
 }
 
 /* FONT IMPORT */
 
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Play:wght@700&display=swap');
-

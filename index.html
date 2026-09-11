@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- viewport-fit=cover lets the layout paint into the iOS safe areas; every
+         screen pads itself back out with env(safe-area-inset-*). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Sort Showdown</title>
 
     <!-- Favicon links -->
@@ -12,7 +14,9 @@
     <link rel="manifest" href="src/assets/favicon-package/site.webmanifest">
     <link rel="mask-icon" href="src/assets/favicone-package/safari-pinned-tab.svg" color="#5bbad5">
     <meta name="msapplication-TileColor" content="#da532c">
-    <meta name="theme-color" content="#ffffff">
+    <!-- Matches the page background, so iOS browser chrome does not sit a white
+         band against the synthwave art. -->
+    <meta name="theme-color" content="#0b0518">
 
     <!-- Stylesheet and script -->
     <link rel="stylesheet" href="src/styles/styles.css">
@@ -22,98 +26,153 @@
 </head>
 
 <body>
-    <div class="video-background">
-        <!-- playsinline lets iOS Safari play this decorative video inline rather
-             than taking it fullscreen. Note it does not stop Safari painting a
-             play control when it declines to autoplay at all, as in Low Power
-             Mode; that fallback is Stage 4 work. -->
-        <video autoplay muted loop playsinline webkit-playsinline id="video" aria-hidden="true" tabindex="-1">
+    <!-- A fixed backdrop layer rather than a wrapper around the content: nothing
+         in the page then sits inside an `overflow: hidden` ancestor, which is what
+         `position: sticky` needs to work for the DONE action on small screens.
+         playsinline lets iOS Safari play this decorative video inline rather than
+         taking it fullscreen. Note it does not stop Safari painting a play control
+         when it declines to autoplay at all, as in Low Power Mode; that fallback
+         is Stage 4 work. -->
+    <div class="video-background" aria-hidden="true">
+        <video autoplay muted loop playsinline webkit-playsinline id="video" tabindex="-1">
             <source src="src/assets/videos/retro-background.mp4" type="video/mp4">
         </video>
+    </div>
 
     <main>
-    <div class="content">
-        <section id="initial-content">
-            <div class="title-container">
+        <section id="initial-content" class="screen screen--intro">
+            <div class="intro">
                 <h1 class="title-text" id="instructions-title" tabindex="-1"><span class="emoji" aria-hidden="true">🎲</span> SORT SHOWDOWN <span class="emoji" aria-hidden="true">🎲</span></h1>
-            </div>
-            <div id="instructions-container">
-                <h2>HOW TO PLAY:</h2>
+                <p class="intro-premise">Sort your dice in ascending order before your opponent finishes.</p>
+
+                <fieldset id="difficulty-buttons" class="opponent-picker">
+                    <legend class="opponent-picker-legend">CHOOSE YOUR OPPONENT</legend>
+                    <div class="opponent-cards">
+                        <label class="difficulty-button">
+                            <input class="difficulty-input" type="radio" name="opponent" value="easy">
+                            <span class="difficulty-portrait">
+                                <img src="src/assets/images/difficulty_easy.png" alt="">
+                                <span class="difficulty-check" aria-hidden="true">✓</span>
+                            </span>
+                            <span class="difficulty-text">
+                                <span class="difficulty-opponent">BLAKE</span>
+                                <span class="difficulty-level">EASY</span>
+                                <span class="difficulty-tempo">
+                                    <span class="speed-pips speed-pips--1" aria-hidden="true"><i></i><i></i><i></i></span>
+                                    Relaxed<span class="visually-hidden"> pace</span>
+                                </span>
+                            </span>
+                        </label>
+                        <label class="difficulty-button">
+                            <input class="difficulty-input" type="radio" name="opponent" value="medium" checked>
+                            <span class="difficulty-portrait">
+                                <img src="src/assets/images/difficulty_medium.png" alt="">
+                                <span class="difficulty-check" aria-hidden="true">✓</span>
+                            </span>
+                            <span class="difficulty-text">
+                                <span class="difficulty-opponent">STAR</span>
+                                <span class="difficulty-level">MEDIUM</span>
+                                <span class="difficulty-tempo">
+                                    <span class="speed-pips speed-pips--2" aria-hidden="true"><i></i><i></i><i></i></span>
+                                    Quick<span class="visually-hidden"> pace</span>
+                                </span>
+                            </span>
+                        </label>
+                        <label class="difficulty-button">
+                            <input class="difficulty-input" type="radio" name="opponent" value="hard">
+                            <span class="difficulty-portrait">
+                                <img src="src/assets/images/difficulty_hard.png" alt="">
+                                <span class="difficulty-check" aria-hidden="true">✓</span>
+                            </span>
+                            <span class="difficulty-text">
+                                <span class="difficulty-opponent">LOGAN</span>
+                                <span class="difficulty-level">HARD</span>
+                                <span class="difficulty-tempo">
+                                    <span class="speed-pips speed-pips--3" aria-hidden="true"><i></i><i></i><i></i></span>
+                                    Fast<span class="visually-hidden"> pace</span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <button id="start-button" class="btn btn--primary btn--start" type="button">START</button>
+
+                <!-- The controls are also stated here, unconditionally, so a screen
+                     reader user never has to open the disclosure to learn them. -->
+                <p class="visually-hidden">How to play: put your dice in ascending order before your opponent finishes. Drag a die, or focus one and move it with the left and right arrow keys, with Home and End sending it to either end. Press Enter or Space on a die to pick it up, then Enter or Space on another die to place it there. Escape cancels. Press DONE to submit your order.</p>
+                <details class="how-to-play">
+                    <summary>HOW TO PLAY</summary>
                     <ol>
                         <li>Pick your opponent, then hit START.</li>
-                        <li>Put your dice in order, lowest to highest, before your opponent finishes.</li>
-                        <li>Drag a die with your mouse or finger. Or focus a die and move it with the left and right arrow keys, with Home and End sending it to either end.</li>
-                        <li>Prefer not to drag? Press Enter on a die to pick it up, then Enter on another to place it there. Escape puts it back.</li>
-                        <li>Hit DONE to lock in your order. Switch between 6 and 9 dice any time.</li>
+                        <li>Sort your dice from lowest to highest before your opponent finishes.</li>
+                        <li>Drag to reorder. Keyboard: Left/Right, Home/End, or Enter to pick up and place a die. Escape cancels.</li>
+                        <li>Hit DONE to submit your order. Switch between 6 and 9 dice anytime.</li>
                     </ol>
+                </details>
             </div>
-            <fieldset id="difficulty-buttons">
-                <legend class="visually-hidden">Choose your opponent</legend>
-                <label class="difficulty-button">
-                    <input class="difficulty-input" type="radio" name="opponent" value="easy">
-                    <img src="src/assets/images/difficulty_easy.png" alt="">
-                    <span class="difficulty-text">
-                        <span class="difficulty-level">EASY</span>
-                        <span class="difficulty-opponent">Play Against Blake</span>
-                    </span>
-                </label>
-                <label class="difficulty-button">
-                    <input class="difficulty-input" type="radio" name="opponent" value="medium" checked>
-                    <img src="src/assets/images/difficulty_medium.png" alt="">
-                    <span class="difficulty-text">
-                        <span class="difficulty-level">MEDIUM</span>
-                        <span class="difficulty-opponent">Play Against Star</span>
-                    </span>
-                </label>
-                <label class="difficulty-button">
-                    <input class="difficulty-input" type="radio" name="opponent" value="hard">
-                    <img src="src/assets/images/difficulty_hard.png" alt="">
-                    <span class="difficulty-text">
-                        <span class="difficulty-level">HARD</span>
-                        <span class="difficulty-opponent">Play Against Logan</span>
-                    </span>
-                </label>
-            </fieldset>
-            <button id="start-button" type="button">START</button>
         </section>
-    </div>
 
-    <section id="game-content" hidden>
-        <div class="navbtns-container">
-            <button id="toggle-dice-button" class="toggle-dice-button" type="button">6 DICE VERSION</button>
-            <button id="instructions-button" class="instructions-button" type="button">INSTRUCTIONS</button>
-        </div>
-        <div class="title-container">
-            <h1 class="title-text"><span class="emoji" aria-hidden="true">🎲</span> SORT SHOWDOWN <span class="emoji" aria-hidden="true">🎲</span></h1>
-        </div>
+        <section id="game-content" class="screen screen--game" hidden>
+            <header class="toolbar">
+                <h1 class="wordmark"><span class="emoji" aria-hidden="true">🎲</span><span class="wordmark-text">SORT SHOWDOWN</span></h1>
+                <div class="toolbar-actions">
+                    <button id="toggle-dice-button" class="btn btn--ghost" type="button">6 DICE</button>
+                    <button id="instructions-button" class="btn btn--ghost" type="button">MENU</button>
+                </div>
+            </header>
 
-        <div id="round-result" class="round-result" hidden>
-            <h2 class="round-result-title" id="round-result-title" tabindex="-1"></h2>
-            <div class="round-result-actions">
-                <button id="play-again-button" class="result-button" type="button">PLAY AGAIN</button>
-                <button id="change-opponent-button" class="result-button" type="button">CHANGE OPPONENT</button>
+            <!-- The one place the match is identified, so the panels below never
+                 have to repeat the opponent's name or difficulty. -->
+            <div class="match-bar">
+                <span class="match-side match-side--you">YOU</span>
+                <span class="match-vs" aria-hidden="true">VS</span>
+                <span class="visually-hidden">versus</span>
+                <span class="match-side match-side--them">
+                    <img class="match-portrait" id="match-portrait" src="src/assets/images/difficulty_medium.png" alt="">
+                    <span class="match-name" id="match-name">STAR</span>
+                    <span class="match-level" id="match-level">MEDIUM</span>
+                </span>
             </div>
-        </div>
 
-        <p class="dice-hint" id="dice-hint">Drag a die, or focus one and move it with the left and right arrow keys. Home and End send it to either end. Or press Enter to pick up a die, then Enter on another to place it there.</p>
+            <div id="container" class="board">
+                <section class="panel panel--opponent" id="side2" aria-labelledby="computer-sorting-text">
+                    <h2 class="visually-hidden" id="computer-sorting-text">Opponent's board</h2>
+                    <div class="opponent-status">
+                        <p class="opponent-progress-text" id="opponent-progress-text">GET READY</p>
+                        <progress id="opponent-progress" class="opponent-progress" max="9" value="0" aria-label="Opponent progress"></progress>
+                    </div>
+                    <ul id="dice-container2" class="dice-container dice-container--opponent" role="list" aria-label="Opponent's dice"></ul>
+                </section>
 
-        <div id="container">
-            <div class="side" id="side1">
-                <h2 id="player-heading" tabindex="-1">SORT THESE DICE</h2>
-                <ul id="dice-container1" class="dice-container" role="list" aria-label="Your dice"></ul>
-                <p id="submit-feedback" class="submit-feedback" role="alert"></p>
-                <button id="submit-button" class="sort-button" type="button">DONE</button>
+                <section class="panel panel--player" id="side1" aria-labelledby="player-heading">
+                    <h2 class="panel-heading" id="player-heading" tabindex="-1">YOUR BOARD</h2>
+                    <p class="dice-hint" id="dice-hint">Drag the dice into ascending order.<span class="visually-hidden"> Or focus a die and move it with the left and right arrow keys; Home and End send it to either end. Press Enter or Space on a die to pick it up, then Enter or Space on another die to place it there. Escape cancels.</span></p>
+                    <ul id="dice-container1" class="dice-container dice-container--player" role="list" aria-label="Your dice"></ul>
+                    <p id="submit-feedback" class="submit-feedback" role="alert"></p>
+                    <div class="player-actions">
+                        <button id="submit-button" class="btn btn--primary" type="button">DONE</button>
+                    </div>
+
+                    <!-- Sits over the player's own panel, so the finished board stays
+                         visible and nothing below it moves. -->
+                    <div id="round-result" class="round-result" hidden>
+                        <div class="round-result-card">
+                            <h2 class="round-result-title" id="round-result-title" tabindex="-1"></h2>
+                            <p class="round-result-detail" id="round-result-detail"></p>
+                            <div class="round-result-actions">
+                                <button id="play-again-button" class="btn btn--primary" type="button">PLAY AGAIN</button>
+                                <button id="change-opponent-button" class="btn btn--ghost" type="button">CHANGE OPPONENT</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
-            <div class="side" id="side2">
-                <h2 id="computer-sorting-text">COMPUTER SORTING...</h2>
-                <ul id="dice-container2" class="dice-container" role="list" aria-label="Opponent's dice"></ul>
-            </div>
-        </div>
 
-        <p id="game-status" class="visually-hidden" role="status"></p>
-    </section>
+            <p id="game-status" class="visually-hidden" role="status"></p>
+        </section>
     </main>
-    </div>
+
     <script src="src/scripts/dice.js"></script>
 </body>
 </html>
